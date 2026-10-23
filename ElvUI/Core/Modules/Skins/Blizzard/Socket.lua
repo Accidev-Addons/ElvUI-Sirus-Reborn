@@ -3,6 +3,7 @@ local S = E:GetModule("Skins")
 
 --Lua functions
 local _G = _G
+local ipairs = ipairs
 --WoW API / Variables
 local GetNumSockets = GetNumSockets
 local GetSocketTypes = GetSocketTypes
@@ -19,22 +20,27 @@ S:AddCallbackForAddon("Blizzard_ItemSocketingUI", "Skin_Blizzard_ItemSocketingUI
 	end)
 
 	ItemSocketingFrame:StripTextures()
-	ItemSocketingFrame:CreateBackdrop("Transparent")
-	ItemSocketingFrame.backdrop:Point("TOPLEFT", 11, -12)
-	ItemSocketingFrame.backdrop:Point("BOTTOMRIGHT", -2, 31)
+	ItemSocketingFrame:SetTemplate("Transparent")
 
 	S:SetUIPanelWindowInfo(ItemSocketingFrame, "width")
-	S:SetBackdropHitRect(ItemSocketingFrame)
 
 	ItemSocketingFramePortrait:Kill()
 
-	S:HandleCloseButton(ItemSocketingFrame.CloseButton, ItemSocketingFrame.backdrop)
+	S:HandleCloseButton(ItemSocketingFrame.CloseButton, ItemSocketingFrame)
 
-	ItemSocketingScrollFrame:Height(269)
-	ItemSocketingScrollFrame:Point("TOPLEFT", 20, -77)
+	for _, region in ipairs({ItemSocketingFrame:GetRegions()}) do
+		if region:IsObjectType("FontString") and region:GetText() == ITEM_SOCKETING then
+			region:ClearAllPoints()
+			region:Point("TOP", 0, -8)
+		end
+	end
+
 	ItemSocketingScrollFrame:StripTextures()
 	ItemSocketingScrollFrame:CreateBackdrop("Transparent")
 	ItemSocketingScrollFrame.backdrop:Point("BOTTOMRIGHT", 3, -2)
+	ItemSocketingScrollFrame:ClearAllPoints()
+	ItemSocketingScrollFrame:Point("TOPLEFT", 10, -30)
+	ItemSocketingScrollFrame:Height(300)
 
 	S:HandleSirusScrollBar(ItemSocketingScrollFrameScrollBar)
 
@@ -42,7 +48,7 @@ S:AddCallbackForAddon("Blizzard_ItemSocketingUI", "Skin_Blizzard_ItemSocketingUI
 	ItemSocketingScrollFrameScrollBar:Point("BOTTOMLEFT", ItemSocketingScrollFrame, "BOTTOMRIGHT", 6, 17)
 
 	S:HandleButton(ItemSocketingSocketButton)
-	ItemSocketingSocketButton:Point("BOTTOMRIGHT", -10, 39)
+	ItemSocketingSocketButton:Point("BOTTOMRIGHT", -10, 10)
 
 	for i = 1, MAX_NUM_SOCKETS do
 		local button = _G["ItemSocketingSocket"..i]
@@ -78,19 +84,21 @@ S:AddCallbackForAddon("Blizzard_ItemSocketingUI", "Skin_Blizzard_ItemSocketingUI
 		end
 
 		if numSockets == 3 then
-			ItemSocketingSocket1:SetPoint("BOTTOM", -80, 70)
+			ItemSocketingSocket1:SetPoint("BOTTOM", -80, 42)
 		elseif numSockets == 2 then
-			ItemSocketingSocket1:SetPoint("BOTTOM", -36, 70)
+			ItemSocketingSocket1:SetPoint("BOTTOM", -40, 42)
 		else
-			ItemSocketingSocket1:SetPoint("BOTTOM", 0, 70)
+			ItemSocketingSocket1:SetPoint("BOTTOM", 0, 42)
 		end
 	end)
 
 	hooksecurefunc(ItemSocketingScrollFrame, "SetWidth", function(self, width)
 		if width == 269 then
-			self:Width(300)
+			self:Width(304)
+			ItemSocketingScrollChild:Width(302)
 		elseif width == 297 then
-			self:Width(321)
+			self:Width(315)
+			ItemSocketingScrollChild:Width(313)
 		end
 	end)
 end)

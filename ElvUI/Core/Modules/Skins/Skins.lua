@@ -1840,6 +1840,28 @@ end
 
 local UI_PANEL_OFFSET = 7
 
+local function GetPanelWidth(frame)
+	local backdrop = frame.backdrop
+	if not backdrop then return frame:GetWidth() end
+
+	local width = backdrop:GetWidth()
+	if width > 0 then return width end
+
+	width = frame:GetWidth()
+	for i = 1, backdrop:GetNumPoints() do
+		local point, relativeTo, _, x = backdrop:GetPoint(i)
+		if relativeTo == frame then
+			if strfind(point, 'LEFT') then
+				width = width - x
+			elseif strfind(point, 'RIGHT') then
+				width = width + x
+			end
+		end
+	end
+
+	return width
+end
+
 function S:SetUIPanelWindowInfo(frame, name, value, offset, igroneUpdate, anyPanel)
 	local frameName = frame and frame.GetName and frame:GetName()
 	if not (frameName and (anyPanel or UIPanelWindows[frameName])) then return end
@@ -1847,7 +1869,7 @@ function S:SetUIPanelWindowInfo(frame, name, value, offset, igroneUpdate, anyPan
 	name = 'UIPanelLayout-'..name
 
 	if name == 'UIPanelLayout-width' then
-		value = E:Scale(value or (frame.backdrop and frame.backdrop:GetWidth() or frame:GetWidth())) + (offset or 0) + UI_PANEL_OFFSET
+		value = E:Scale(value or GetPanelWidth(frame)) + (offset or 0) + UI_PANEL_OFFSET
 	end
 
 	local valueChanged = frame:GetAttribute(name) ~= value
