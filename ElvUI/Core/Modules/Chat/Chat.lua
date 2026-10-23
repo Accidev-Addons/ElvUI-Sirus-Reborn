@@ -1723,7 +1723,7 @@ function CH:ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg4, 
 			end
 		end
 
-		if (chatType == 'SYSTEM' or chatType == 'SKILL' or chatType == 'LOOT' or chatType == 'MONEY' or
+		if (chatType == 'SYSTEM' or chatType == 'SKILL' or chatType == 'LOOT' or chatType == 'CURRENCY' or chatType == 'MONEY' or
 		chatType == 'OPENING' or chatType == 'TRADESKILLS' or chatType == 'PET_INFO' or chatType == 'TARGETICONS' or chatType == 'BN_WHISPER_PLAYER_OFFLINE') then
 			if chatType == 'SYSTEM' and notChatHistory then
 				arg1 = CH:ExtendWhoMessage(frame, arg1) or arg1
