@@ -1,0 +1,210 @@
+local E, L, V, P, G = unpack(ElvUI)
+local DB = E:GetModule("DataBars")
+local LSM = E.Libs.LSM
+
+local unpack = unpack
+local pairs, ipairs = pairs, ipairs
+
+local CreateFrame = CreateFrame
+local UnitAffectingCombat = UnitAffectingCombat
+
+local function SetStatusBarTexture(bar, texture)
+	-- used to retain the draw layers reset by SetStatusBarTexture
+	local layer, sublayer = bar.barTexture:GetDrawLayer()
+	bar:SetStatusBarTexture(texture)
+	bar.barTexture:SetDrawLayer(layer, sublayer)
+end
+
+function DB:OnEnter()
+	if self.db.mouseover then
+		E:UIFrameFadeIn(self, 0.4, self:GetAlpha(), 1)
+	end
+
+	if self.onEnter then
+		self:onEnter()
+	end
+end
+
+function DB:OnLeave()
+	if self.db.mouseover then
+		E:UIFrameFadeOut(self, 1, self:GetAlpha(), 0)
+	end
+
+	GameTooltip:Hide()
+end
+
+function DB:CreateBar(name, key, updateFunc, onEnter, onClick, points)
+	local holder = CreateFrame("Frame", name.."Holder", E.UIParent)
+	holder:SetTemplate(DB.db.transparent and "Transparent")
+	holder.onEnter = onEnter
+	holder:SetScript("OnEnter", DB.OnEnter)
+	holder:SetScript("OnLeave", DB.OnLeave)
+	holder:SetScript("OnMouseDown", onClick)
+
+	if points then
+		holder:ClearAllPoints()
+		holder:Point(unpack(points))
+	end
+
+	local bar = CreateFrame("StatusBar", name, holder)
+	bar:SetStatusBarTexture(E.media.normTex)
+	bar:EnableMouse(false)
+	bar:SetInside()
+	bar:Hide()
+
+	bar.barTexture = bar:GetStatusBarTexture()
+	bar.text = bar:CreateFontString(nil, "OVERLAY", nil, 7)
+	bar.text:FontTemplate()
+	bar.text:Point("CENTER")
+
+	bar.holder = holder
+	bar.Update = updateFunc
+
+	DB.StatusBars[key] = bar
+
+	return bar
+end
+
+function DB:CreateBarBubbles(bar)
+	if bar.bubbles then return end
+
+	bar.bubbles = {}
+
+	for i = 1, 19 do
+		bar.bubbles[i] = bar:CreateTexture(nil, "OVERLAY", nil, 0)
+		bar.bubbles[i]:SetTexture(0, 0, 0)
+	end
+end
+
+function DB:UpdateBarBubbles(bar)
+	if not bar.bubbles then return end
+
+	local width, height = bar.db.width, bar.db.height
+	local vertical = bar:GetOrientation() ~= "HORIZONTAL"
+	local bubbleWidth, bubbleHeight = vertical and (width - 2) or 1, vertical and 1 or (height - 2)
+	local offset = (vertical and height or width) * 0.05
+
+	for i, bubble in ipairs(bar.bubbles) do
+		bubble:ClearAllPoints()
+		bubble:SetShown(bar.db.showBubbles)
+		bubble:Size(bubbleWidth, bubbleHeight)
+
+		if vertical then
+			bubble:Point("TOP", bar, "BOTTOM", 0, offset * i)
+		else
+			bubble:Point("RIGHT", bar, "LEFT", offset * i, 0)
+		end
+	end
+end
+
+function DB:UpdateAll()
+	local texture = DB.db.customTexture and LSM:Fetch("statusbar", DB.db.statusbar) or E.media.normTex
+
+	for _, bar in pairs(DB.StatusBars) do
+		bar.holder.db = bar.db
+		bar.holder:Size(bar.db.width, bar.db.height)
+		bar.holder:SetTemplate(DB.db.transparent and "Transparent")
+		bar.holder:EnableMouse(not bar.db.clickThrough)
+		bar.holder:SetFrameLevel(bar.db.frameLevel)
+		bar.holder:SetFrameStrata(bar.db.frameStrata)
+		bar.text:FontTemplate(LSM:Fetch("font", bar.db.font), bar.db.fontSize, bar.db.fontOutline)
+		bar.text:ClearAllPoints()
+		bar.text:Point(bar.db.anchorPoint, bar.db.xOffset, bar.db.yOffset)
+
+		SetStatusBarTexture(bar, texture)
+
+		if bar.db.enable then
+			bar.holder:SetAlpha(bar.db.mouseover and 0 or 1)
+		end
+
+		if bar.db.hideInVehicle then
+			E:RegisterObjectForVehicleLock(bar.holder, E.UIParent)
+		else
+			E:UnregisterObjectForVehicleLock(bar.holder)
+		end
+
+		if bar.db.orientation == "AUTOMATIC" then
+			bar:SetOrientation(bar.db.height > bar.db.width and "VERTICAL" or "HORIZONTAL")
+			bar:SetRotatesTexture(bar.db.height > bar.db.width)
+		else
+			bar:SetOrientation(bar.db.orientation)
+			bar:SetRotatesTexture(bar.db.orientation ~= "HORIZONTAL")
+		end
+
+		local orientation = bar:GetOrientation()
+		local rotatesTexture = bar:GetRotatesTexture()
+
+		for _, child in ipairs({bar.holder:GetChildren()}) do
+			if child:IsObjectType("StatusBar") then
+				SetStatusBarTexture(child, texture)
+				child:SetOrientation(orientation)
+				child:SetRotatesTexture(rotatesTexture)
+			end
+		end
+
+		DB:UpdateBarBubbles(bar)
+	end
+
+	DB:HandleVisibility()
+end
+
+function DB:SetVisibility(bar)
+	if bar.showBar ~= nil then
+		bar:SetShown(bar.showBar)
+		bar.holder:SetShown(bar.showBar)
+	elseif bar.db.enable then
+		local hideBar = (bar.db.hideInCombat and UnitAffectingCombat("player"))
+		or (bar.ShouldHide and bar:ShouldHide())
+
+		bar:SetShown(not hideBar)
+		bar.holder:SetShown(not hideBar)
+	else
+		bar:SetShown(false)
+		bar.holder:SetShown(false)
+	end
+end
+
+function DB:HandleVisibility()
+	for _, bar in pairs(DB.StatusBars) do
+		DB:SetVisibility(bar)
+	end
+end
+
+function DB:ToggleAll()
+	DB:ExperienceBar_Toggle()
+	DB:ReputationBar_Toggle()
+	DB:ThreatBar_Toggle()
+	DB:HonorBar_Toggle()
+
+	if E.myclass == "HUNTER" then
+		DB:PetExperienceBar_Toggle()
+	end
+end
+
+function DB:CreateAll()
+	DB:ExperienceBar()
+	DB:ReputationBar()
+	DB:ThreatBar()
+	DB:HonorBar()
+
+	if E.myclass == "HUNTER" then
+		DB:PetExperienceBar()
+	end
+end
+
+function DB:Initialize()
+	DB.Initialized = true
+	DB.StatusBars = {}
+
+	DB.db = E.db.databars
+
+	DB:CreateAll()
+	DB:UpdateAll()
+
+	DB:RegisterEvent("PLAYER_LEVEL_UP", "HandleVisibility")
+	DB:RegisterEvent("PLAYER_ENTERING_WORLD", "HandleVisibility")
+	DB:RegisterEvent("PLAYER_REGEN_DISABLED", "HandleVisibility")
+	DB:RegisterEvent("PLAYER_REGEN_ENABLED", "HandleVisibility")
+end
+
+E:RegisterModule(DB:GetName())

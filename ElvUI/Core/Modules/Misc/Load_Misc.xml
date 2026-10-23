@@ -1,0 +1,16 @@
+<Ui xmlns='http://www.blizzard.com/wow/ui/'>
+	<Script file='Misc.lua'/>
+	<Script file='Merchant.lua'/>
+	<Script file='DebugTools.lua'/>
+	<Script file='ChatBubbles.lua'/>
+	<Script file='RaidMarker.lua'/>
+	<Script file='Loot.lua'/>
+	<Script file='LootRoll.lua'/>
+	<Script file='TotemTracker.lua'/>
+	<Script file='AddonManager.lua'/>
+	<Script file='MinimapButtonGrabber.lua'/>
+	<Script file='RaidUtility.lua'/>
+	<Script file='AFK.lua'/>
+	<Script file='QueueStatus.lua'/>
+	<Script file='ReminderBuffs.lua'/>
+</Ui>

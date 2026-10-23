@@ -1,0 +1,106 @@
+local E, L, V, P, G = unpack(ElvUI)
+local NP = E:GetModule("NamePlates")
+local LSM = E.Libs.LSM
+
+--Lua functions
+--WoW API / Variables
+local UNKNOWN = UNKNOWN
+local UnitIsDead = UnitIsDead
+
+function NP:Update_Name(frame, triggered)
+	if not triggered then
+		if not self.db.units[frame.UnitType].name.enable then return end
+	end
+
+	local name = frame.Name
+	local nameText = frame.UnitName or UNKNOWN
+	name:SetText(self.db.units[frame.UnitType].name.abbrev and E.TagFunctions.Abbrev(nameText) or nameText)
+
+	if not triggered then
+		name:ClearAllPoints()
+		if self.db.units[frame.UnitType].health.enable or (self.db.alwaysShowTargetHealth and frame.isTarget) then
+			name:SetJustifyH("LEFT")
+			name:SetPoint(E.InversePoints[self.db.units[frame.UnitType].name.position], self.db.units[frame.UnitType].name.parent == "Nameplate" and frame or frame[self.db.units[frame.UnitType].name.parent], self.db.units[frame.UnitType].name.position, self.db.units[frame.UnitType].name.xOffset, self.db.units[frame.UnitType].name.yOffset)
+			name:SetParent(frame.Health)
+		else
+			name:SetJustifyH("CENTER")
+			name:SetPoint("TOP", frame)
+			name:SetParent(frame)
+		end
+	end
+
+	local r, g, b = 1, 1, 1
+	local class = frame.UnitClass
+
+	local nameDB = self.db.units[frame.UnitType].name
+	local useClassColor = nameDB and nameDB.useClassColor
+	local classColor = E:ClassColor(class)
+	local isPlayerType = frame.UnitType == "FRIENDLY_PLAYER" or frame.UnitType == "ENEMY_PLAYER"
+	local fallbackToReaction = isPlayerType and useClassColor and not classColor
+
+	if useClassColor and classColor and isPlayerType then
+		r, g, b = classColor.r, classColor.g, classColor.b
+	elseif triggered or fallbackToReaction or (frame.unit and UnitIsDead(frame.unit)) or (not self.db.units[frame.UnitType].health.enable and not frame.isTarget) then
+		local reactionType = frame.UnitReaction
+		if reactionType then
+			local db = self.db.colors
+			if reactionType == 4 then
+				r, g, b = db.reactions.neutral.r, db.reactions.neutral.g, db.reactions.neutral.b
+			elseif reactionType > 4 then
+				if frame.UnitType == "FRIENDLY_PLAYER" then
+					r, g, b = db.reactions.friendlyPlayer.r, db.reactions.friendlyPlayer.g, db.reactions.friendlyPlayer.b
+				else
+					r, g, b = db.reactions.good.r, db.reactions.good.g, db.reactions.good.b
+				end
+			else
+				r, g, b = db.reactions.bad.r, db.reactions.bad.g, db.reactions.bad.b
+			end
+		end
+	end
+
+	-- if for some reason the values failed just default to white
+	if not (r and g and b) then
+		r, g, b = 1, 1, 1
+	end
+
+	if triggered or (r ~= frame.Name.r or g ~= frame.Name.g or b ~= frame.Name.b) then
+		name:SetTextColor(r, g, b)
+		if not triggered then
+			frame.Name.r, frame.Name.g, frame.Name.b = r, g, b
+		end
+	end
+
+	if self.db.nameColoredGlow then
+		name.NameOnlyGlow:SetVertexColor(r - 0.1, g - 0.1, b - 0.1, 1)
+	else
+		name.NameOnlyGlow:SetVertexColor(self.db.colors.glowColor.r, self.db.colors.glowColor.g, self.db.colors.glowColor.b, self.db.colors.glowColor.a)
+	end
+end
+
+function NP:Configure_Name(frame)
+	local db = self.db.units[frame.UnitType].name
+	frame.Name:FontTemplate(LSM:Fetch("font", db.font), db.fontSize, db.fontOutline)
+end
+
+function NP:Configure_NameOnlyGlow(frame)
+	local name = frame.Name
+	name.NameOnlyGlow:ClearAllPoints()
+	name.NameOnlyGlow:SetPoint("TOPLEFT", frame.IconOnlyChanged and frame.IconFrame or name, -20, 8)
+	name.NameOnlyGlow:SetPoint("BOTTOMRIGHT", frame.IconOnlyChanged and frame.IconFrame or name, 20, -8)
+end
+
+function NP:Construct_Name(frame)
+	local name = frame:CreateFontString(nil, "OVERLAY")
+	name:SetJustifyV("BOTTOM")
+	name:SetWordWrap(false)
+
+	local g = frame:CreateTexture(nil, "BACKGROUND")
+	g:SetTexture(E.Media.Textures.Spark)
+	g:Hide()
+	g:SetPoint("TOPLEFT", name, -20, 8)
+	g:SetPoint("BOTTOMRIGHT", name, 20, -8)
+
+	name.NameOnlyGlow = g
+
+	return name
+end

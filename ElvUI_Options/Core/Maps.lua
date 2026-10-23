@@ -1,0 +1,184 @@
+local E, _, V, P, G = unpack(ElvUI)
+local C, L = unpack(E.Config)
+local WM = E:GetModule('WorldMap')
+local MM = E:GetModule('Minimap')
+local MBG = E:GetModule('MinimapButtonGrabber')
+local ACH = E.Libs.ACH
+
+local _G = _G
+local pairs = pairs
+local GetSpellInfo = GetSpellInfo
+
+local buttonPositions = {
+	LEFT = L["Left"],
+	RIGHT = L["Right"],
+	TOP = L["Top"],
+	BOTTOM = L["Bottom"],
+	TOPLEFT = L["Top Left"],
+	TOPRIGHT = L["Top Right"],
+	BOTTOMLEFT = L["Bottom Left"],
+	BOTTOMRIGHT = L["Bottom Right"],
+}
+
+local growthPoints = {
+	TOPLEFT = L["Top Left"],
+	TOPRIGHT = L["Top Right"],
+	BOTTOMLEFT = L["Bottom Left"],
+	BOTTOMRIGHT = L["Bottom Right"],
+}
+
+local textFontSize = { min = 6, max = 42, step = 1 }
+local buttonScale = { min = 0.5, max = 3, step = 0.05 }
+local buttonOffsets = { min = -60, max = 60, step = 1 }
+
+local Maps = ACH:Group(L["Maps"], nil, 2, 'tab')
+E.Options.args.maps = Maps
+
+Maps.args.worldMap = ACH:Group(L["WORLD_MAP"], nil, 1, 'tab')
+Maps.args.worldMap.args.enable = ACH:Toggle(L["Enable"], L["Enable/Disable the World Map Enhancements."], 0, nil, nil, nil, function() return E.private.worldmap.enable end, function(_, value) E.private.worldmap.enable = value E.ShowPopup = true end)
+
+Maps.args.worldMap.args.generalGroup = ACH:Group(L["General"], nil, 1, nil, function(info) return E.global.general[info[#info]] end, function(info, value) E.global.general[info[#info]] = value end, function() return not E.private.worldmap.enable end)
+Maps.args.worldMap.args.generalGroup.inline = true
+Maps.args.worldMap.args.generalGroup.args.smallerWorldMap = ACH:Toggle(L["Smaller World Map"], L["Make the world map smaller."], 1, nil, nil, nil, nil, function(_, value) E.global.general.smallerWorldMap = value; E.ShowPopup = true end)
+
+Maps.args.worldMap.args.generalGroup.args.spacer1 = ACH:Spacer(3)
+Maps.args.worldMap.args.generalGroup.args.fadeMapWhenMoving = ACH:Toggle(L["MAP_FADE_TEXT"], nil, 4, nil, nil, nil, nil, function(_, value) E.global.general.fadeMapWhenMoving = value; E.WorldMap.UpdateMapAlpha() end)
+Maps.args.worldMap.args.generalGroup.args.mapAlphaWhenMoving = ACH:Range(L["Map Opacity When Moving"], nil, 5, { min = 0, max = 1, step = .01, isPercent = true }, nil, nil, function(_, value) E.global.general.mapAlphaWhenMoving = value; E.WorldMap:UpdateMapFade(_G.WorldMapFrame, E.global.general.mapAlphaWhenMoving, 1.0, E.global.general.fadeMapDuration) end, function() return not E.global.general.fadeMapWhenMoving end)
+Maps.args.worldMap.args.generalGroup.args.fadeMapDuration = ACH:Range(L["Fade Duration"], nil, 6, { min = 0, max = 1, step = .01, isPercent = true }, nil, nil, function(_, value) E.global.general.fadeMapDuration = value; E.WorldMap:UpdateMapFade(_G.WorldMapFrame, E.global.general.mapAlphaWhenMoving, 1.0, E.global.general.fadeMapDuration) end, function() return not E.global.general.fadeMapWhenMoving end)
+
+Maps.args.worldMap.args.coordinatesGroup = ACH:Group(L["World Map Coordinates"], nil, 3, nil, function(info) return E.global.general.WorldMapCoordinates[info[#info]] end, function(info, value) E.global.general.WorldMapCoordinates[info[#info]] = value; WM:PositionCoords() end, function() return not E.private.worldmap.enable end)
+Maps.args.worldMap.args.coordinatesGroup.inline = true
+Maps.args.worldMap.args.coordinatesGroup.args.enable = ACH:Toggle(L["Enable"], L["Puts coordinates on the world map."], 1, nil, nil, nil, nil, function(_, value) E.global.general.WorldMapCoordinates.enable = value; E.ShowPopup = true end)
+Maps.args.worldMap.args.coordinatesGroup.args.position = ACH:Select(L["Position"], nil, 3, buttonPositions, nil, nil, nil, nil, function() return not E.global.general.WorldMapCoordinates.enable end)
+Maps.args.worldMap.args.coordinatesGroup.args.xOffset = ACH:Range(L["X-Offset"], nil, 4, { min = -200, max = 200, step = 1 }, nil, nil, nil, function() return not E.global.general.WorldMapCoordinates.enable end)
+Maps.args.worldMap.args.coordinatesGroup.args.yOffset = ACH:Range(L["Y-Offset"], nil, 5, { min = -200, max = 200, step = 1 }, nil, nil, nil, function() return not E.global.general.WorldMapCoordinates.enable end)
+
+Maps.args.minimap = ACH:Group(L["Minimap"], nil, 2, 'tab', function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:UpdateSettings() end)
+Maps.args.minimap.args.enable = ACH:Toggle(L["Enable"], L["Enable/Disable the minimap. |cffFF3333Warning: This will prevent you from seeing the minimap datatexts.|r"], 1, nil, nil, nil, function(info) return E.private.general.minimap[info[#info]] end, function(info, value) E.private.general.minimap[info[#info]] = value; E.ShowPopup = true end)
+Maps.args.minimap.args.size = ACH:Range(L["Size"], L["Adjust the size of the minimap."], 6, { min = 24, max = 500, step = 1 }, nil, nil, nil, function() return not E.private.general.minimap.enable end)
+Maps.args.minimap.args.scale = ACH:Range(L["Scale"], L["Adjust the scale of the minimap and also the pins. Eg: Quests, Resource nodes, Group members"], 7, { min = .5, max = 2, step = .01, isPercent = true }, nil, nil, nil, function() return not E.private.general.minimap.enable end)
+
+Maps.args.minimap.args.zoomResetGroup = ACH:Group(L["Reset Zoom"], nil, 10, nil, function(info) return E.db.general.minimap.resetZoom[info[#info]] end, function(info, value) E.db.general.minimap.resetZoom[info[#info]] = value; MM:UpdateSettings() end, function() return not E.private.general.minimap.enable end)
+Maps.args.minimap.args.zoomResetGroup.args.enable = ACH:Toggle(L["Enable"], nil, 1)
+Maps.args.minimap.args.zoomResetGroup.args.time = ACH:Range(L["Seconds"], nil, 2, { min = 1, max = 15, step = 1 })
+Maps.args.minimap.args.zoomResetGroup.inline = true
+
+Maps.args.minimap.args.cluster = ACH:Group(L["Cluster"], nil, 40)
+Maps.args.minimap.args.cluster.args.clusterDisable = ACH:Toggle(L["Disable Cluster"], nil, 1, nil, nil, nil, function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:UpdateSettings(); E.ShowPopup = true end)
+Maps.args.minimap.args.cluster.args.clusterBackdrop = ACH:Toggle(L["Cluster Backdrop"], nil, 2, nil, nil, nil, function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:UpdateSettings() end, function() return E.db.general.minimap.clusterDisable end)
+Maps.args.minimap.args.cluster.args.rotate = ACH:Toggle(L["Rotate"], nil, 3, nil, nil, nil, function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:SetMinimapRotate() MM:UpdateSettings() end)
+Maps.args.minimap.args.cluster.args.rotate.customWidth = 125
+Maps.args.minimap.args.cluster.args.circle = ACH:Toggle(L["Circle"], nil, 4, nil, nil, nil, function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:SetMinimapMask(not value) MM:UpdateSettings() end)
+Maps.args.minimap.args.cluster.args.circle.customWidth = 125
+
+Maps.args.minimap.args.cluster.args.locationTextGroup = ACH:Group(L["Location Text"], nil, 10, nil, function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:UpdateSettings() end, function() return not E.private.general.minimap.enable end)
+Maps.args.minimap.args.cluster.args.locationTextGroup.args.locationText = ACH:Select(L["Location Text"], L["Change settings for the display of the location text that is on the minimap."], 1, { MOUSEOVER = L["Minimap Mouseover"], SHOW = L["Always Display"], HIDE = L["Hide"] }, nil, nil, nil, nil, nil, function() return not E.db.general.minimap.clusterDisable end)
+Maps.args.minimap.args.cluster.args.locationTextGroup.args.locationFont = ACH:SharedMediaFont(L["Font"], nil, 2)
+Maps.args.minimap.args.cluster.args.locationTextGroup.args.locationFontSize = ACH:Range(L["Font Size"], nil, 3, textFontSize)
+Maps.args.minimap.args.cluster.args.locationTextGroup.args.locationFontOutline = ACH:FontFlags(L["Font Outline"], nil, 4)
+Maps.args.minimap.args.cluster.args.locationTextGroup.inline = true
+
+Maps.args.minimap.args.cluster.args.timeTextGroup = ACH:Group(L["Time Text"], nil, 20, nil, function(info) return E.db.general.minimap[info[#info]] end, function(info, value) E.db.general.minimap[info[#info]] = value; MM:UpdateSettings() end, function() return E.db.general.minimap.clusterDisable or not E.private.general.minimap.enable end)
+Maps.args.minimap.args.cluster.args.timeTextGroup.args.timeFont = ACH:SharedMediaFont(L["Font"], nil, 2)
+Maps.args.minimap.args.cluster.args.timeTextGroup.args.timeFontSize = ACH:Range(L["Font Size"], nil, 3, textFontSize)
+Maps.args.minimap.args.cluster.args.timeTextGroup.args.timeFontOutline = ACH:FontFlags(L["Font Outline"], nil, 4)
+Maps.args.minimap.args.cluster.args.timeTextGroup.inline = true
+
+Maps.args.minimap.args.icons = ACH:Group(L["Buttons"], nil, 50, nil, function(info) return E.db.general.minimap.icons[info[#info - 1]][info[#info]] end, function(info, value) E.db.general.minimap.icons[info[#info - 1]][info[#info]] = value; MM:UpdateSettings() end)
+Maps.args.minimap.args.icons.args.tracking = ACH:Group(L["Tracking"], nil, 3, nil, nil, nil, function() return not E.db.general.minimap.clusterDisable end)
+Maps.args.minimap.args.icons.args.tracking.args.hideTracking = ACH:Toggle(L["Hide"], nil, 1, nil, nil, nil, function() return E.private.general.minimap.hideTracking end, function(_, value) E.private.general.minimap.hideTracking = value; MM:UpdateSettings() end)
+Maps.args.minimap.args.icons.args.tracking.args.spacer = ACH:Spacer(2, "full")
+Maps.args.minimap.args.icons.args.tracking.args.position = ACH:Select(L["Position"], nil, 3, buttonPositions, nil, nil, nil, nil, function() return E.private.general.minimap.hideTracking end)
+Maps.args.minimap.args.icons.args.tracking.args.scale = ACH:Range(L["Scale"], nil, 4, buttonScale, nil, nil, nil, function() return E.private.general.minimap.hideTracking end)
+Maps.args.minimap.args.icons.args.tracking.args.xOffset = ACH:Range(L["X-Offset"], nil, 5, buttonOffsets, nil, nil, nil, function() return E.private.general.minimap.hideTracking end)
+Maps.args.minimap.args.icons.args.tracking.args.yOffset = ACH:Range(L["Y-Offset"], nil, 6, buttonOffsets, nil, nil, nil, function() return E.private.general.minimap.hideTracking end)
+
+Maps.args.minimap.args.icons.args.calendar = ACH:Group(L["Calendar"], nil, 4, nil, nil, nil, function() return not E.db.general.minimap.clusterDisable end)
+Maps.args.minimap.args.icons.args.calendar.args.hideCalendar = ACH:Toggle(L["Hide"], nil, 1, nil, nil, nil, function() return E.private.general.minimap.hideCalendar end, function(_, value) E.private.general.minimap.hideCalendar = value; MM:UpdateSettings() end)
+Maps.args.minimap.args.icons.args.calendar.args.spacer = ACH:Spacer(2, 'full')
+Maps.args.minimap.args.icons.args.calendar.args.position = ACH:Select(L["Position"], nil, 3, buttonPositions, nil, nil, nil, nil, function() return E.private.general.minimap.hideCalendar end)
+Maps.args.minimap.args.icons.args.calendar.args.scale = ACH:Range(L["Scale"], nil, 4, buttonScale, nil, nil, nil, function() return E.private.general.minimap.hideCalendar end)
+Maps.args.minimap.args.icons.args.calendar.args.xOffset = ACH:Range(L["X-Offset"], nil, 5, buttonOffsets, nil, nil, nil, function() return E.private.general.minimap.hideCalendar end)
+Maps.args.minimap.args.icons.args.calendar.args.yOffset = ACH:Range(L["Y-Offset"], nil, 6, buttonOffsets, nil, nil, nil, function() return E.private.general.minimap.hideCalendar end)
+
+Maps.args.minimap.args.icons.args.mail = ACH:Group(L["MAIL_LABEL"], nil, 5, nil, nil, nil, function() return not E.db.general.minimap.clusterDisable end)
+Maps.args.minimap.args.icons.args.mail.args.position = ACH:Select(L["Position"], nil, 1, buttonPositions)
+Maps.args.minimap.args.icons.args.mail.args.scale = ACH:Range(L["Scale"], nil, 2, buttonScale)
+Maps.args.minimap.args.icons.args.mail.args.xOffset = ACH:Range(L["X-Offset"], nil, 3, buttonOffsets)
+Maps.args.minimap.args.icons.args.mail.args.yOffset = ACH:Range(L["Y-Offset"], nil, 4, buttonOffsets)
+Maps.args.minimap.args.icons.args.mail.args.texture = ACH:Select(L["Texture"], nil, 5)
+
+do -- mail icons
+	local mail = {}
+	Maps.args.minimap.args.icons.args.mail.args.texture.values = mail
+
+	for key, icon in pairs(E.Media.MailIcons) do
+		mail[key] = E:TextureString(icon, ':22:22')
+	end
+end
+
+Maps.args.minimap.args.icons.args.battlefield = ACH:Group(L["Battlefield"], nil, 6)
+Maps.args.minimap.args.icons.args.battlefield.args.position = ACH:Select(L["Position"], nil, 1, buttonPositions)
+Maps.args.minimap.args.icons.args.battlefield.args.scale = ACH:Range(L["Scale"], nil, 2, buttonScale)
+Maps.args.minimap.args.icons.args.battlefield.args.xOffset = ACH:Range(L["X-Offset"], nil, 3, buttonOffsets)
+Maps.args.minimap.args.icons.args.battlefield.args.yOffset = ACH:Range(L["Y-Offset"], nil, 4, buttonOffsets)
+
+Maps.args.minimap.args.icons.args.difficulty = ACH:Group(L["Instance Difficulty"], nil, 7)
+Maps.args.minimap.args.icons.args.difficulty.args.position = ACH:Select(L["Position"], nil, 1, buttonPositions)
+Maps.args.minimap.args.icons.args.difficulty.args.scale = ACH:Range(L["Scale"], nil, 2, buttonScale)
+Maps.args.minimap.args.icons.args.difficulty.args.xOffset = ACH:Range(L["X-Offset"], nil, 3, buttonOffsets)
+Maps.args.minimap.args.icons.args.difficulty.args.yOffset = ACH:Range(L["Y-Offset"], nil, 4, buttonOffsets)
+
+Maps.args.minimap.args.buttonGrabber = ACH:Group(L["Minimap Button Grabber"], nil, 45, nil, function(info) return E.db.general.minimapButtonGrabber[info[#info]] end, function(info, value) E.db.general.minimapButtonGrabber[info[#info]] = value; MBG:UpdateSettings() end, function() return not E.private.general.minimap.enable end)
+Maps.args.minimap.args.buttonGrabber.args.enable = ACH:Toggle(L["Enable"], nil, 1, nil, nil, nil, function() return E.private.general.minimapButtonGrabber.enable end, function(_, value) E.private.general.minimapButtonGrabber.enable = value; E.ShowPopup = true end)
+Maps.args.minimap.args.buttonGrabber.args.spacer = ACH:Spacer(2, 'full')
+Maps.args.minimap.args.buttonGrabber.args.growFrom = ACH:Select(L["Growth Direction"], nil, 3, growthPoints, nil, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.buttonsPerRow = ACH:Range(L["Buttons Per Row"], L["The amount of buttons to display per row."], 4, { min = 1, max = 12, step = 1 }, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.buttonSize = ACH:Range(L["Button Size"], nil, 5, { min = 16, max = 48, step = 1 }, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.buttonSpacing = ACH:Range(L["Button Spacing"], L["The spacing between buttons."], 6, { min = -1, max = 10, step = 1 }, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.backdrop = ACH:Toggle(L["Backdrop"], nil, 7, nil, nil, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.backdropSpacing = ACH:Range(L["Backdrop Spacing"], L["The spacing between the backdrop and the buttons."], 8, { min = 0, max = 10, step = 1 }, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable or not E.db.general.minimapButtonGrabber.backdrop end)
+Maps.args.minimap.args.buttonGrabber.args.mouseover = ACH:Toggle(L["Mouseover"], L["The frame is not shown unless you mouse over the frame."], 9, nil, nil, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.alpha = ACH:Range(L["Alpha"], nil, 10, { min = .1, max = 1, step = .05, isPercent = true }, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable end)
+
+Maps.args.minimap.args.buttonGrabber.args.insideMinimap = ACH:Group(L["Inside Minimap"], nil, 11, nil, function(info) return E.db.general.minimapButtonGrabber.insideMinimap[info[#info]] end, function(info, value) E.db.general.minimapButtonGrabber.insideMinimap[info[#info]] = value; MBG:UpdateSettings() end, function() return not E.private.general.minimapButtonGrabber.enable end)
+Maps.args.minimap.args.buttonGrabber.args.insideMinimap.inline = true
+Maps.args.minimap.args.buttonGrabber.args.insideMinimap.args.enable = ACH:Toggle(L["Enable"], nil, 1)
+Maps.args.minimap.args.buttonGrabber.args.insideMinimap.args.position = ACH:Select(L["Position"], nil, 2, buttonPositions, nil, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable or not E.db.general.minimapButtonGrabber.insideMinimap.enable end)
+Maps.args.minimap.args.buttonGrabber.args.insideMinimap.args.xOffset = ACH:Range(L["X-Offset"], nil, 3, buttonOffsets, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable or not E.db.general.minimapButtonGrabber.insideMinimap.enable end)
+Maps.args.minimap.args.buttonGrabber.args.insideMinimap.args.yOffset = ACH:Range(L["Y-Offset"], nil, 4, buttonOffsets, nil, nil, nil, function() return not E.private.general.minimapButtonGrabber.enable or not E.db.general.minimapButtonGrabber.insideMinimap.enable end)
+
+local RB = E:GetModule('ReminderBuffs')
+local function ReminderGet(info) return E.db.general.reminder[info[#info]] end
+local function ReminderSet(info, value) E.db.general.reminder[info[#info]] = value RB:UpdateSettings() end
+local function ReminderOff() return not E.db.general.reminder.enable end
+local function ReminderSpellName(casterSpell, meleeSpell) return function() return (GetSpellInfo(RB:IsCaster() and casterSpell or meleeSpell)) end end
+
+Maps.args.minimap.args.reminder = ACH:Group(L["Reminder Buffs"], nil, 55, nil, ReminderGet, ReminderSet, function() return not E.private.general.minimap.enable end)
+local Reminder = Maps.args.minimap.args.reminder.args
+
+Reminder.enable = ACH:Toggle(L["Enable"], L["Display reminder bar on the minimap."], 1)
+
+Reminder.generalGroup = ACH:Group(L["General"], nil, 2, nil, nil, nil, ReminderOff)
+Reminder.generalGroup.inline = true
+Reminder.generalGroup.args.durations = ACH:Toggle(L["Remaining Time"], nil, 1)
+Reminder.generalGroup.args.reverse = ACH:Toggle(L["Reverse Style"], L["When enabled active buff icons will light up instead of becoming darker, while inactive buff icons will become darker instead of being lit up."], 2)
+Reminder.generalGroup.args.position = ACH:Select(L["Position"], nil, 3, { LEFT = L["Left"], RIGHT = L["Right"] }, nil, nil, nil, function(info, value) E.db.general.reminder[info[#info]] = value RB:UpdatePosition() end)
+Reminder.generalGroup.args.keepButtonSizeRatio = ACH:Toggle(L["Keep Size Ratio"], L["Square buttons, the height follows the minimap."], 4)
+Reminder.generalGroup.args.height = ACH:Range(L["Width"], L["Button width, the height follows the minimap."], 5, { min = 8, max = 64, step = 1 }, nil, nil, nil, function() return E.db.general.reminder.keepButtonSizeRatio end)
+
+Reminder.fontGroup = ACH:Group(L["Font"], nil, 3, nil, nil, nil, function() return not E.db.general.reminder.enable or not E.db.general.reminder.durations end)
+Reminder.fontGroup.inline = true
+Reminder.fontGroup.args.font = ACH:SharedMediaFont(L["Font"], nil, 1)
+Reminder.fontGroup.args.fontSize = ACH:Range(L["Font Size"], nil, 2, { min = 6, max = 22, step = 1 })
+Reminder.fontGroup.args.fontOutline = ACH:FontFlags(L["Font Outline"], L["Set the font outline."], 3)
+
+Reminder.checkgroup = ACH:Group(L["Buffs"], nil, 4, nil, nil, nil, ReminderOff)
+Reminder.checkgroup.inline = true
+Reminder.checkgroup.args.pot = ACH:Toggle(L["Flasks and Elixirs"], nil, 1)
+Reminder.checkgroup.args.food = ACH:Toggle(L["Food"], nil, 2)
+Reminder.checkgroup.args.drubuff = ACH:Toggle(GetSpellInfo(48469), nil, 3)
+Reminder.checkgroup.args.palcask = ACH:Toggle(GetSpellInfo(20217), nil, 4)
+Reminder.checkgroup.args.inta = ACH:Toggle(ReminderSpellName(42995, 48161), nil, 5)
+Reminder.checkgroup.args.palmp5 = ACH:Toggle(ReminderSpellName(48936, 48932), nil, 6)
+Reminder.checkgroup.args.oil = ACH:Toggle(ReminderSpellName(317727, 317728), nil, 7)

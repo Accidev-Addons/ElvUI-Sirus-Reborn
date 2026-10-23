@@ -1,0 +1,67 @@
+local E, L, V, P, G = unpack(ElvUI)
+local DT = E:GetModule('DataTexts')
+
+local time, strjoin = time, strjoin
+local UnitGUID = UnitGUID
+
+local lastSegment, petGUID = 0
+local timeStamp, combatTime, DMGTotal, lastDMGAmount = 0, 0, 0, 0
+local displayString = ''
+local events = {
+	SWING_DAMAGE = true,
+	RANGE_DAMAGE = true,
+	SPELL_DAMAGE = true,
+	SPELL_PERIODIC_DAMAGE = true,
+	DAMAGE_SHIELD = true,
+	DAMAGE_SPLIT = true,
+	SPELL_EXTRA_ATTACKS = true
+}
+
+local function Reset()
+	timeStamp, combatTime, DMGTotal, lastDMGAmount = 0, 0, 0, 0
+end
+
+local function GetDPS(self)
+	local DPS
+	if DMGTotal == 0 or combatTime == 0 then
+		DPS = 0
+	else
+		DPS = DMGTotal / combatTime
+	end
+	self.text:SetFormattedText(displayString, L["DPS"], E:ShortValue(DPS))
+end
+
+local function OnEvent(self, event, ...)
+	if event == 'UNIT_PET' then
+		petGUID = UnitGUID('pet')
+	elseif event == 'PLAYER_REGEN_DISABLED' or event == 'PLAYER_LEAVE_COMBAT' then
+		local now = time()
+		if now - lastSegment > 20 then --time since the last segment
+			Reset()
+		end
+		lastSegment = now
+	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
+		local timestamp, Event, sourceGUID, _, _, _, _, _, arg9, _, _, arg12 = ...
+		if not events[Event] then return end
+		if sourceGUID ~= E.myguid and sourceGUID ~= petGUID then return end
+
+		if timeStamp == 0 then timeStamp = timestamp end
+		lastSegment = timeStamp
+		combatTime = timestamp - timeStamp
+		lastDMGAmount = (Event == 'SWING_DAMAGE' and arg9) or arg12
+		DMGTotal = DMGTotal + lastDMGAmount
+	end
+
+	GetDPS(self)
+end
+
+local function OnClick(self)
+	Reset()
+	GetDPS(self)
+end
+
+local function ApplySettings(_, hex)
+	displayString = strjoin('', '%s: ', hex, '%s')
+end
+
+DT:RegisterDatatext('DPS', nil, { 'UNIT_PET', 'COMBAT_LOG_EVENT_UNFILTERED', 'PLAYER_LEAVE_COMBAT', 'PLAYER_REGEN_DISABLED' }, OnEvent, nil, OnClick, nil, nil, L["DPS"], nil, ApplySettings)
