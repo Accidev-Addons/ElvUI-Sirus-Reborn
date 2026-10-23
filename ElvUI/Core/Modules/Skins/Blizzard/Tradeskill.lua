@@ -51,10 +51,7 @@ local function LoadSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.tradeskill then return end
 
 	local TradeSkillFrame = _G.TradeSkillFrame
-	if not (TradeSkillFrame and TradeSkillFrame.RecipeInset) then return end
-
 	S:HandlePortraitFrame(TradeSkillFrame)
-	S:HandleMaxMinFrame(_G.MaximizeMinimizeFrame)
 
 	local portraitRing = TradeSkillFrame.portrait:GetParent():CreateTexture(nil, "OVERLAY")
 	portraitRing:SetTexture(RING_TEXTURE)
@@ -76,14 +73,8 @@ local function LoadSkin()
 	E:RegisterStatusBar(RankFrame)
 	E:SetSmoothing(RankFrame, 1, true)
 
-	S:HandleTab(TradeSkillFrame.LearnedTab)
-	S:HandleTab(TradeSkillFrame.UnlearnedTab)
-
 	S:HandleEditBox(TradeSkillFrame.SearchBox)
 	S:HandleButton(TradeSkillFrame.FilterButton)
-	S:HandleDropDownBox(_G.TradeSkillInvSlotDropDown, 140)
-	S:HandleDropDownBox(_G.TradeSkillSubClassDropDown, 140)
-	S:HandleCheckBox(_G.TradeSkillFrameAvailableFilterCheckButton)
 
 	_G.TradeSkillHighlight:SetTexture(E.media.blankTex)
 	_G.TradeSkillHighlight:SetBlendMode("BLEND")
@@ -151,6 +142,7 @@ local function LoadSkin()
 	S:HandleButton(_G.TradeSkillCreateAllButton)
 	S:HandleButton(_G.TradeSkillCreateButton)
 	S:HandleButton(_G.TradeSkillCancelButton)
+	S:HandleButton(_G.TradeSkillViewGuildCraftersButton)
 
 	local InputBox = _G.TradeSkillInputBox
 	S:HandleEditBox(InputBox)
@@ -233,4 +225,4 @@ local function LoadSkin()
 	end)
 end
 
-S:AddCallback("Skin_Tradeskill", LoadSkin)
+S:AddCallbackForAddon("Blizzard_TradeSkillUI", "Skin_Tradeskill", LoadSkin)

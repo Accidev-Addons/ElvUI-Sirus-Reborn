@@ -743,7 +743,6 @@ do -- Module Copy
 		config.args.colors.args.debuffHighlight.name = L["Debuff Highlighting"]
 		config.args.colors.args.selection.name = L["Selection"]
 		config.args.colors.args.threat.name = L["Threat"]
-		config.args.colors.args.happiness.name = _G.HAPPINESS
 
 		config.args.units = ACH:Group(L["UnitFrames"], nil, -10, nil, function(info) return E.global.profileCopy.unitframe[info[#info-1]][info[#info]] end, function(info, value) E.global.profileCopy.unitframe[info[#info-1]][info[#info]] = value; end)
 		config.args.units.inline = true

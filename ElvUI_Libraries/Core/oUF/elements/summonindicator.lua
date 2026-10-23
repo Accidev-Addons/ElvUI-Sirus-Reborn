@@ -25,7 +25,7 @@ local function AutoHide(element, status)
 	if not (C_Timer and C_Timer.After) then return end
 
 	local token = element.hideToken
-	C_Timer:After(DURATION[status] or 10, function()
+	C_Timer.After(DURATION[status] or 10, function()
 		if element.hideToken == token then
 			element:Hide()
 		end

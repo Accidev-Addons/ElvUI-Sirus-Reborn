@@ -71,7 +71,7 @@ local ADDITIONAL_POWER_BAR_NAME = ADDITIONAL_POWER_BAR_NAME or 'MANA'
 local ADDITIONAL_POWER_BAR_INDEX = ADDITIONAL_POWER_BAR_INDEX or 0
 
 local function UpdateColor(self, event, unit, powertype)
-	if(not (unit and unit == 'player') and powertype == ADDITIONAL_POWER_BAR_NAME) then return end
+	if(not (unit and unit == 'player' and powertype == ADDITIONAL_POWER_BAR_NAME)) then return end
 	local element = self.AdditionalPower
 
 	local r, g, b, t
@@ -116,7 +116,7 @@ local function ColorPath(self, ...)
 end
 
 local function Update(self, event, unit, powertype)
-	if(not (unit and unit == 'player') and powertype == ADDITIONAL_POWER_BAR_NAME) then return end
+	if(not (unit and unit == 'player' and powertype == ADDITIONAL_POWER_BAR_NAME)) then return end
 
 	local element = self.AdditionalPower
 	--[[ Callback: AdditionalPower:PreUpdate(unit)
@@ -168,8 +168,8 @@ end
 local function ElementEnable(self)
 	local element = self.AdditionalPower
 
-	self:RegisterEvent('UNIT_MANA', Path)
-	self:RegisterEvent('UNIT_MAXMANA', Path)
+	self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
+	self:RegisterEvent('UNIT_MAXPOWER', Path)
 
 	element:Show()
 
@@ -185,8 +185,8 @@ local function ElementEnable(self)
 end
 
 local function ElementDisable(self)
-	self:UnregisterEvent('UNIT_MAXMANA', Path)
-	self:UnregisterEvent('UNIT_MANA', Path)
+	self:UnregisterEvent('UNIT_MAXPOWER', Path)
+	self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
 
 	self.AdditionalPower:Hide()
 

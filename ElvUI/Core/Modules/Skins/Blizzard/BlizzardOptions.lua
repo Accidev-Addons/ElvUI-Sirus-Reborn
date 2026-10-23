@@ -82,9 +82,6 @@ S:AddCallback("Skin_BlizzardOptions", function()
 
 		"VideoOptionsFrameCategoryFrame",
 		"VideoOptionsFramePanelContainer",
-		"VideoOptionsResolutionPanelBrightness",
-		"VideoOptionsEffectsPanelQuality",
-		"VideoOptionsEffectsPanelShaders",
 	}
 	for _, frame in ipairs(optionFrames) do
 		frame = _G[frame]
@@ -133,8 +130,6 @@ S:AddCallback("Skin_BlizzardOptions", function()
 	InterfaceOptionsFrameAddOnsListScrollBar:Point("TOPRIGHT", 1, -18)
 	InterfaceOptionsFrameAddOnsListScrollBar:Point("BOTTOMLEFT", 7, 19)
 
-	S:HandleDropDownBox(VideoOptionsResolutionPanelMultiSampleDropDown, 195)
-
 	VideoOptionsFrameDefaults:Point("BOTTOMLEFT", 21, 16)
 	VideoOptionsFrameApply:Point("BOTTOMRIGHT", -22, 16)
 	VideoOptionsFrameCancel:Point("BOTTOMRIGHT", VideoOptionsFrameApply, "BOTTOMLEFT", -3, 0)
@@ -147,8 +142,6 @@ S:AddCallback("Skin_BlizzardOptions", function()
 	InterfaceOptionsFrameDefaults:Point("BOTTOMLEFT", 21, 16)
 	InterfaceOptionsFrameCancel:Point("BOTTOMRIGHT", -22, 16)
 	InterfaceOptionsFrameOkay:Point("BOTTOMRIGHT", InterfaceOptionsFrameCancel, "BOTTOMLEFT", -3, 0)
-
-	VideoOptionsResolutionPanelBrightnessGrayScale:SetTexture([[Interface\OptionsFrame\21stepgrayscale]])
 
 	-- Generic sweep for the Sirus/AddOn option panels the lists above don't name
 	local optionContainers = {
@@ -269,6 +262,8 @@ S:AddCallback("Skin_BlizzardOptions", function()
 	end
 
 	SweepOptionPanels()
+
+	Advanced_GammaSliderGrayScale:SetTexture([[Interface\OptionsFrame\21stepgrayscale]])
 
 	InterfaceOptionsFrame:HookScript("OnShow", SweepOptionPanels)
 	VideoOptionsFrame:HookScript("OnShow", SweepOptionPanels)

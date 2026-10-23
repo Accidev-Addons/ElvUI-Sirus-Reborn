@@ -76,7 +76,7 @@ local strlen = string.len
 local GetFramerate = GetFramerate
 local strlower = string.lower
 local unpack,type,pairs,wipe = unpack,type,pairs,table.wipe
-local UnitInRaid,GetNumPartyMembers = UnitInRaid,GetNumPartyMembers
+local UnitInRaid,GetNumSubgroupMembers = UnitInRaid,GetNumSubgroupMembers
 
 
 -----------------------------------------------------------------------
@@ -302,7 +302,7 @@ function ChatThrottleLib:Despool(Prio)
 		local lowerDest = strlower(msg[3] or "")
 		if lowerDest == "raid" and not UnitInRaid("player") then
 			-- do nothing
-		elseif lowerDest == "party" and GetNumPartyMembers() == 0 then
+		elseif lowerDest == "party" and GetNumSubgroupMembers() == 0 then
 			-- do nothing
 		else
 			Prio.avail = Prio.avail - msg.nSize

@@ -39,10 +39,9 @@ local function Update(self, event)
 		element:PreUpdate()
 	end
 
-	local isTank, isHealer, isDamage = UnitGroupRolesAssigned(self.unit)
-	if(isTank or isHealer or isDamage) then
-		local role = isTank and "tank" or isHealer and "healer" or isDamage and "dps"
-		element:SetTexture("Interface\\AddOns\\ElvUI\\media\\textures\\" .. role)
+	local role = UnitGroupRolesAssigned(self.unit)
+	if(role == 'TANK' or role == 'HEALER' or role == 'DAMAGER') then
+		element:SetTexture("Interface\\AddOns\\ElvUI\\media\\textures\\" .. (role == 'TANK' and 'tank' or role == 'HEALER' and 'healer' or 'dps'))
 		element:Show()
 	else
 		element:Hide()
@@ -52,10 +51,10 @@ local function Update(self, event)
 	Called after the element has been updated.
 
 	* self - the GroupRoleIndicator element
-	* isTank, isHealer, isDamage - the role as returned by [UnitGroupRolesAssigned](http://wowprogramming.com/docs/api/UnitGroupRolesAssigned)
+	* role - the role as returned by [UnitGroupRolesAssigned](http://wowprogramming.com/docs/api/UnitGroupRolesAssigned)
 	--]]
 	if(element.PostUpdate) then
-		return element:PostUpdate(isTank, isHealer, isDamage)
+		return element:PostUpdate(role)
 	end
 end
 
@@ -83,7 +82,7 @@ local function Enable(self)
 		if(self.unit == 'player') then
 			self:RegisterEvent('PLAYER_ROLES_ASSIGNED', Path, true)
 		else
-			self:RegisterEvent('PARTY_MEMBERS_CHANGED', Path, true)
+			self:RegisterEvent('GROUP_ROSTER_UPDATE', Path, true)
 		end
 
 		if(element:IsObjectType('Texture') and not element:GetTexture()) then
@@ -100,7 +99,7 @@ local function Disable(self)
 		element:Hide()
 
 		self:UnregisterEvent('PLAYER_ROLES_ASSIGNED', Path)
-		self:UnregisterEvent('PARTY_MEMBERS_CHANGED', Path)
+		self:UnregisterEvent('GROUP_ROSTER_UPDATE', Path)
 	end
 end
 

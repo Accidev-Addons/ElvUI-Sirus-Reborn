@@ -2204,7 +2204,7 @@ function CH:DelayGuildMOTD()
 	tinsert(_G.ChatTypeGroup.GUILD, 2, 'GUILD_MOTD')
 
 	local ticker -- 5 seconds can be too fast for the API response, so retry every 5 seconds (max 5 checks)
-	ticker = C_Timer:NewTicker(5, function()
+	ticker = C_Timer.NewTicker(5, function()
 		local msg = GetGuildRosterMOTD()
 		if not (msg and strlen(msg) > 0) then return end
 
@@ -2847,8 +2847,7 @@ function CH:Initialize()
 
 	CH:RegisterEvent('UPDATE_CHAT_WINDOWS', 'SetupChat')
 	CH:RegisterEvent('UPDATE_FLOATING_CHAT_WINDOWS', 'SetupChat')
-	CH:RegisterEvent('RAID_ROSTER_UPDATE', 'CheckLFGRoles')
-	CH:RegisterEvent('PARTY_MEMBERS_CHANGED', 'CheckLFGRoles')
+	CH:RegisterEvent('GROUP_ROSTER_UPDATE', 'CheckLFGRoles')
 	CH:RegisterEvent('CVAR_UPDATE')
 
 	if _G.WIM then

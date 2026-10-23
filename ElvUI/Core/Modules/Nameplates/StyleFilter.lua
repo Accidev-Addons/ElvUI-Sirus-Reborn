@@ -634,7 +634,7 @@ NP.StyleFilterTriggerList = {}
 NP.StyleFilterTriggerEvents = {}
 NP.StyleFilterCastSpells = {}
 
-local StyleFilterPowerEvents = {"UNIT_HEALTH", "UNIT_MANA", "UNIT_ENERGY", "UNIT_FOCUS", "UNIT_RAGE", "UNIT_RUNIC_POWER", "UNIT_DISPLAYPOWER"}
+local StyleFilterPowerEvents = {"UNIT_HEALTH", "UNIT_POWER", "UNIT_DISPLAYPOWER"}
 
 function NP:StyleFilterConfigure()
 	twipe(NP.StyleFilterTriggerList)
@@ -687,11 +687,7 @@ function NP:StyleFilterConfigure()
 				end
 
 				if t.powerThreshold then
-					NP.StyleFilterTriggerEvents.UNIT_MANA = 1
-					NP.StyleFilterTriggerEvents.UNIT_ENERGY = 1
-					NP.StyleFilterTriggerEvents.UNIT_FOCUS = 1
-					NP.StyleFilterTriggerEvents.UNIT_RAGE = 1
-					NP.StyleFilterTriggerEvents.UNIT_RUNIC_POWER = 1
+					NP.StyleFilterTriggerEvents.UNIT_POWER = 1
 					NP.StyleFilterTriggerEvents.UNIT_DISPLAYPOWER = 1
 				end
 

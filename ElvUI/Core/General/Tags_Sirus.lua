@@ -20,10 +20,10 @@ local UnitIsUnit = UnitIsUnit
 
 local C_Unit, C_Inspect = C_Unit, C_Inspect
 local UnitAura, UnitRace = UnitAura, UnitRace
-local GetPetHappiness = GetPetHappiness
 local GetItemLevelColor = GetItemLevelColor
 local GetOnslaughtRating = GetOnslaughtRating
-local GetUnitRatedBattlegroundRankInfo = GetUnitRatedBattlegroundRankInfo
+local GetUnitRatedBattlegroundRankInfo = C_PvP.GetUnitRatedBattlegroundRankInfo
+local GetAtlasInfo = C_Texture.GetAtlasInfo
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
 local UnitGetTotalHealAbsorbs = UnitGetTotalHealAbsorbs
 local S_PREMIUM_SPELL_ID = _G.S_PREMIUM_SPELL_ID
@@ -175,8 +175,8 @@ if SIRUS_ENABLED then
 	local function RatedBGRank(unit)
 		if not UnitIsPlayer(unit) then return end
 
-		local title, rankID, coords = GetUnitRatedBattlegroundRankInfo(unit)
-		if title then return title, rankID, coords end
+		local title, rankID, atlas = GetUnitRatedBattlegroundRankInfo(unit)
+		if title then return title, rankID, atlas end
 
 		local guid = tonumber(UnitGUID(unit) or '')
 		if guid then pending[guid] = unit end
@@ -191,13 +191,11 @@ if SIRUS_ENABLED then
 	end)
 
 	E:AddTag('pvp:icon', 'UNIT_FACTION UNIT_TARGET', function(unit)
-		local coords = select(3, RatedBGRank(unit))
-		if type(coords) ~= 'table' then return end
+		local atlas = select(3, RatedBGRank(unit))
+		local info = atlas and GetAtlasInfo(atlas)
+		if not info then return end
 
-		local left, right, top, bottom = unpack(coords)
-		if not bottom then return end
-
-		return format('|T%s:18:18:0:0:1024:512:%d:%d:%d:%d|t', 'Interface\\PVPFrame\\PvPPrestigeIcons', left * 1024, right * 1024, top * 512, bottom * 512)
+		return format('|T%s:18:18:0:0:1024:512:%d:%d:%d:%d|t', info.filename, info.leftTexCoord * 1024, info.rightTexCoord * 1024, info.topTexCoord * 512, info.bottomTexCoord * 512)
 	end)
 
 	local ilvlPending = {}
@@ -254,27 +252,6 @@ local RACE_ABBREV = {
 E:AddTag('race:abbrev', 'UNIT_NAME_UPDATE UNIT_TARGET', function(unit)
 	if UnitIsPlayer(unit) then
 		return RACE_ABBREV[select(2, UnitRace(unit))]
-	end
-end)
-
-local HAPPINESS_ICONS = {
-	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:0:0:128:64:48:72:0:23|t]],
-	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:0:0:128:64:24:48:0:23|t]],
-	[[|TInterface\PetPaperDollFrame\UI-PetHappiness:16:16:0:0:128:64:0:24:0:23|t]]
-}
-
-local HAPPINESS_FACES = { ':<', ':|', ':D' }
-
-E:AddTag('happiness', 'UNIT_HAPPINESS PET_UI_UPDATE', function(unit)
-	if UnitIsUnit(unit, 'pet') then
-		return HAPPINESS_FACES[GetPetHappiness() or 0]
-	end
-end)
-
-E:AddTag('happiness:icon', 'UNIT_HAPPINESS PET_UI_UPDATE', function(unit)
-	local hasPetUI, isHunterPet = HasPetUI()
-	if hasPetUI and isHunterPet and UnitIsUnit(unit, 'pet') then
-		return HAPPINESS_ICONS[GetPetHappiness() or 0]
 	end
 end)
 
@@ -412,7 +389,5 @@ if SIRUS_ENABLED then
 end
 
 E:AddTagInfo('race:abbrev', 'Sirus', "Показывает расу юнита сокращённо")
-E:AddTagInfo('happiness', 'Sirus', "Показывает счастье питомца текстом")
-E:AddTagInfo('happiness:icon', 'Sirus', "Показывает счастье питомца иконкой")
 E:AddTagInfo('distance:check', 'Sirus', "Показывает дистанцию до юнита диапазоном: 20-25 (без LibRangeCheck: 0-10/10-11/11-28/>28)")
 E:AddTagInfo('distance:check:compare', 'Sirus', "Показывает дистанцию до юнита сравнением: >20 <25 (без LibRangeCheck: <10/<11/<28/>28)")

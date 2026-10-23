@@ -37,7 +37,7 @@ local format, wipe, type, gmatch, gsub, ceil = format, wipe, type, gmatch, gsub,
 local geterrorhandler = geterrorhandler
 local hooksecurefunc = hooksecurefunc
 local GetAddOnMetadata = GetAddOnMetadata
-local GetNumPartyMembers, GetNumRaidMembers = GetNumPartyMembers, GetNumRaidMembers
+local GetNumGroupMembers, IsInRaid, IsInGroup = GetNumGroupMembers, IsInRaid, IsInGroup
 local GetLocale, IsInGuild = GetLocale, IsInGuild
 local CreateFrame, IsAddOnLoaded = CreateFrame, IsAddOnLoaded
 local IsInInstance = IsInInstance
@@ -122,8 +122,7 @@ function lib:RegisterPlugin(name, callback, isLib, libVersion)
 
 	if not lib.registeredPrefix then
 		lib.VCFrame:RegisterEvent("CHAT_MSG_ADDON")
-		lib.VCFrame:RegisterEvent("RAID_ROSTER_UPDATE")
-		lib.VCFrame:RegisterEvent("PARTY_MEMBERS_CHANGED")
+		lib.VCFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 		lib.VCFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 		lib.registeredPrefix = true
 	end
@@ -221,9 +220,8 @@ function lib:VersionCheck(event, prefix, msg, _, senderOne, senderTwo)
 				end
 			end
 		end
-	elseif event == "RAID_ROSTER_UPDATE" or event == "PARTY_MEMBERS_CHANGED" then
-		local numRaid, numParty = GetNumRaidMembers(), GetNumPartyMembers() + 1
-		local num = numRaid > 0 and numRaid or numParty
+	elseif event == "GROUP_ROSTER_UPDATE" then
+		local num = GetNumGroupMembers()
 		if num ~= lib.groupSize then
 			if num > 1 and num > lib.groupSize then
 				lib:DelayedSendVersionCheck()
@@ -261,10 +259,10 @@ function lib:SendPluginVersionCheck(message)
 	end
 
 	local ChatType
-	if GetNumRaidMembers() > 1 then
+	if IsInRaid() then
 		local _, instanceType = IsInInstance()
 		ChatType = instanceType == "pvp" and "BATTLEGROUND" or "RAID"
-	elseif GetNumPartyMembers() > 0 then
+	elseif IsInGroup() then
 		ChatType = "PARTY"
 	elseif IsInGuild() then
 		ChatType = "GUILD"

@@ -12,24 +12,20 @@ local tinsert, tremove, wipe = tinsert, tremove, wipe
 local type, pairs, ipairs, unpack, select = type, pairs, ipairs, unpack, select
 local ceil, next, max, floor, format, strsub = ceil, next, max, floor, format, strsub
 local pcall = pcall
-local band = bit.band
 
 local CreateFrame = CreateFrame
 local CursorHasItem = CursorHasItem
 local GetContainerItemID = GetContainerItemID
-local GetItemFamily = GetItemFamily
 local IsModifiedClick = IsModifiedClick
 local IsReagentItem = IsReagentItem
 local SpellIsTargeting = SpellIsTargeting
 local GameTooltip = GameTooltip
 local GameTooltip_Hide = GameTooltip_Hide
 local GetBindingKey = GetBindingKey
-local GetCursorInfo = GetCursorInfo
 local GetCursorMoney = GetCursorMoney
 local GetCVarBool = GetCVarBool
 local GetInventoryItemTexture = GetInventoryItemTexture
 local GetItemSpell = GetItemSpell
-local GetKeyRingSize = GetKeyRingSize
 local GetMoney = GetMoney
 local GetNumBankSlots = GetNumBankSlots
 local GetPlayerTradeMoney = GetPlayerTradeMoney
@@ -38,7 +34,6 @@ local PickupContainerItem = PickupContainerItem
 local PlaySound = PlaySound
 local PutItemInBackpack = PutItemInBackpack
 local PutItemInBag = PutItemInBag
-local PutKeyInKeyRing = PutKeyInKeyRing
 local SetItemButtonCount = SetItemButtonCount
 local SetItemButtonDesaturated = SetItemButtonDesaturated
 local SetItemButtonTexture = SetItemButtonTexture
@@ -78,7 +73,6 @@ local GetReagentBankCost = GetReagentBankCost
 
 local CONTAINER_OFFSET_X, CONTAINER_OFFSET_Y = CONTAINER_OFFSET_X, CONTAINER_OFFSET_Y
 
-local BINDING_NAME_TOGGLEKEYRING = BINDING_NAME_TOGGLEKEYRING
 local IG_BACKPACK_CLOSE = 863
 local IG_BACKPACK_OPEN = 862
 local IG_MAINMENU_OPTION = 852
@@ -151,7 +145,6 @@ local TOP_OFFSET = 50
 local BANK_TAB_OFFSET = 28
 local REAGENT_BORDER = {0.6, 0.6, 0.6}
 local REAGENTBANK_NUM_SLOTS = 98
-local KEYRING_ITEM_FAMILY = 256
 local BIND
 
 B.numTrackedTokens = 0
@@ -191,7 +184,7 @@ B.IsEquipmentSlot = {
 	INVTYPE_RELIC = true
 }
 
-local bagIDs, bankIDs = {KEYRING_CONTAINER, 0, 1, 2, 3, 4}, { -1 }
+local bagIDs, bankIDs = {0, 1, 2, 3, 4}, { -1 }
 local bankOffset, maxBankSlots = 4, 11
 local bankEvents = {'BAG_UPDATE', 'BAG_CLOSED', 'ITEM_LOCK_CHANGED', 'PLAYERBANKBAGSLOTS_CHANGED', 'PLAYERBANKSLOTS_CHANGED'}
 local bagEvents = {'BAG_UPDATE', 'BAG_CLOSED', 'ITEM_LOCK_CHANGED', 'QUEST_ACCEPTED', 'QUEST_LOG_UPDATE'}
@@ -662,7 +655,7 @@ function B:UpdateSlot(frame, bagID, slotID)
 end
 
 function B:GetContainerNumSlots(bagID)
-	return (bagID == KEYRING_CONTAINER and GetKeyRingSize()) or GetContainerNumSlots(bagID)
+	return GetContainerNumSlots(bagID)
 end
 
 function B:UpdateBagButtons()
@@ -748,16 +741,6 @@ function B:ReagentSlot_OnEnter()
 	B.ReagentSlot_UpdateTooltip(self)
 end
 
-local function PutCursorInKeyRing()
-	local kind, _, link = GetCursorInfo()
-	if kind ~= 'item' or not link then return end
-
-	local family = GetItemFamily(link)
-	if family and band(family, KEYRING_ITEM_FAMILY) ~= 0 then
-		PutKeyInKeyRing()
-	end
-end
-
 local function PutItemInBankContainer()
 	for slotID = 1, B:GetContainerNumSlots(BANK_CONTAINER) do
 		if not GetContainerItemID(BANK_CONTAINER, slotID) then
@@ -784,8 +767,6 @@ end
 function B:Holder_OnClick()
 	if self.BagID == BACKPACK_CONTAINER then
 		B:BagItemAction(self, PutItemInBackpack)
-	elseif self.BagID == KEYRING_CONTAINER then
-		B:BagItemAction(self, PutCursorInKeyRing)
 	elseif self.BagID == BANK_CONTAINER then
 		B:BagItemAction(self, PutItemInBankContainer)
 	elseif self.isBank then
@@ -811,8 +792,6 @@ function B:Holder_OnEnter()
 		GameTooltip:AddLine(kb and format('%s |cffffd200(%s)|r', _G.BACKPACK_TOOLTIP, kb) or _G.BACKPACK_TOOLTIP, 1, 1, 1)
 	elseif self.BagID == BANK_CONTAINER then
 		GameTooltip:AddLine(L["Bank"], 1, 1, 1)
-	elseif self.BagID == KEYRING_CONTAINER then
-		GameTooltip:AddLine(_G.KEYRING, 1, 1, 1)
 	elseif self.BagID == REAGENTBANK_CONTAINER then
 		local free, total = B:GetReagentFreeSlots()
 		GameTooltip:AddDoubleLine(REAGENT_BANK, format('%d/%d', total - free, total), 1, 1, 1, 1, 1, 1)
@@ -1579,8 +1558,6 @@ function B:ConstructContainerHolder(f, bagID, isBank, name, index)
 
 	if bagID == BACKPACK_CONTAINER then
 		holder:SetScript('OnReceiveDrag', PutItemInBackpack)
-	elseif bagID == KEYRING_CONTAINER then
-		holder:SetScript('OnReceiveDrag', PutCursorInKeyRing)
 	else
 		holder:RegisterForDrag('LeftButton')
 		holder:SetScript('OnDragStart', B.Holder_OnDragStart)
@@ -1940,15 +1917,6 @@ function B:Container_ClickGold()
 	E:StaticPopup_Show('PICKUP_MONEY')
 end
 
-function B:Container_ToggleKeyring()
-	local bagFrame = self.bagFrame
-	local holder = bagFrame.ContainerHolderByBagID
-	local keyring = holder and holder[KEYRING_CONTAINER]
-	if keyring then
-		B:ToggleContainer(keyring)
-	end
-end
-
 function B:ConstructContainerFrame(name, isBank)
 	local strata = B.db.strata or 'HIGH'
 
@@ -2147,25 +2115,12 @@ function B:ConstructContainerFrame(name, isBank)
 		--Bags Button
 		f.bagsButton:SetScript('OnClick', B.BagsButton_ClickBag)
 
-		--Keyring Button
-		f.keyButton = CreateFrame('Button', name..'KeyButton', f.holderFrame)
-		f.keyButton.bagFrame = f
-		f.keyButton:Size(20)
-		f.keyButton:SetTemplate()
-		f.keyButton:Point('RIGHT', f.bagsButton, 'LEFT', -5, 0)
-		B:SetButtonTexture(f.keyButton, [[Interface\ICONS\INV_Misc_Key_03]])
-		f.keyButton:StyleButton(nil, true)
-		f.keyButton.ttText = BINDING_NAME_TOGGLEKEYRING
-		f.keyButton:SetScript('OnEnter', B.Tooltip_Show)
-		f.keyButton:SetScript('OnLeave', GameTooltip_Hide)
-		f.keyButton:SetScript('OnClick', B.Container_ToggleKeyring)
-
 		--Vendor Grays
 		f.vendorGraysButton = CreateFrame('Button', nil, f.holderFrame)
 		f.vendorGraysButton.bagFrame = f
 		f.vendorGraysButton:Size(20)
 		f.vendorGraysButton:SetTemplate()
-		f.vendorGraysButton:Point('RIGHT', f.keyButton, 'LEFT', -5, 0)
+		f.vendorGraysButton:Point('RIGHT', f.bagsButton, 'LEFT', -5, 0)
 		B:SetButtonTexture(f.vendorGraysButton, [[Interface\ICONS\INV_Misc_Coin_01]])
 		f.vendorGraysButton:StyleButton(nil, true)
 		f.vendorGraysButton.ttText = L["Vendor/Delete Grays"]
@@ -2258,9 +2213,12 @@ function B:ConstructContainerButton(f, bagID, slotID)
 		slot:SetScript('PreClick', B.Slot_PreClick)
 	end
 
-	local newItemTexture = _G[slotName..'NewItemTexture']
-	if newItemTexture then
-		newItemTexture:Hide()
+	if slot.NewItemTexture then
+		slot.NewItemTexture:Hide()
+	end
+
+	if slot.BattlepayItemTexture then
+		slot.BattlepayItemTexture:Hide()
 	end
 
 	slot.Count = _G[slotName..'Count']

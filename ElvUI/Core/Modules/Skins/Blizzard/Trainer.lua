@@ -2,7 +2,20 @@ local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule("Skins")
 
 local _G = _G
-local hooksecurefunc = hooksecurefunc
+local ipairs = ipairs
+
+local function SkinSkillButton(button)
+	button:DisableDrawLayer("ARTWORK")
+	button:StyleButton()
+
+	button:CreateBackdrop()
+	button.backdrop:SetOutside(button.icon)
+	button.icon:SetTexCoords()
+	button.icon:SetParent(button.backdrop)
+
+	button.selectedTex:SetTexture(1, 1, 1, 0.3)
+	button.selectedTex:SetInside()
+end
 
 local function LoadSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.trainer then return end
@@ -10,56 +23,23 @@ local function LoadSkin()
 	local ClassTrainerFrame = _G.ClassTrainerFrame
 	S:HandleSirusFrame(ClassTrainerFrame)
 
-	if ClassTrainerFrame.ListInset then ClassTrainerFrame.ListInset:StripTextures() end
-	if ClassTrainerFrame.DetailsInset then ClassTrainerFrame.DetailsInset:StripTextures() end
+	ClassTrainerFrame.bottomInset:StripTextures()
 
-	ClassTrainerExpandButtonFrame:StripTextures()
+	S:HandleDropDownBox(ClassTrainerFrameFilterDropDown, 150)
 
-	S:HandleSirusButton(ClassTrainerFrame.FilterButton, true)
+	S:HandleSirusScrollFrame(ClassTrainerFrame.scrollFrame)
 
-	local dropDown = ClassTrainerFrame.FilterDropDownMenu
-	if dropDown then
-		S:HandleDropDownBox(dropDown)
+	for _, button in ipairs(ClassTrainerFrame.scrollFrame.buttons) do
+		SkinSkillButton(button)
 	end
 
-	ClassTrainerListScrollFrame:StripTextures()
-	S:HandleSirusScrollBar(ClassTrainerListScrollFrame.ScrollBar)
+	SkinSkillButton(ClassTrainerFrame.skillStepButton)
 
-	ClassTrainerDetailScrollFrame:StripTextures()
-	S:HandleSirusScrollBar(ClassTrainerDetailScrollFrame.ScrollBar)
+	S:HandleSirusStatusBar(ClassTrainerStatusBar)
+	ClassTrainerStatusBar.rankText:ClearAllPoints()
+	ClassTrainerStatusBar.rankText:Point("CENTER")
 
-	ClassTrainerSkillHighlight:SetTexture(E.Media.Textures.Highlight)
-	ClassTrainerSkillHighlight:SetAlpha(0.35)
-
-	ClassTrainerSkillIcon:StripTextures()
-	ClassTrainerSkillIcon:StyleButton(nil, true)
-	ClassTrainerSkillIcon:SetTemplate("Default")
-
-	S:HandleCollapseExpandButton(ClassTrainerCollapseAllButton, "+", nil, nil, 1)
-
-	for i = 1, CLASS_TRAINER_SKILLS_DISPLAYED do
-		local skillButton = _G["ClassTrainerSkill"..i]
-		local highlight = _G["ClassTrainerSkill"..i.."Highlight"]
-
-		S:HandleCollapseExpandButton(skillButton, "+", nil, nil, 1)
-
-		if highlight then
-			E:LockMethod(highlight, "SetTexture", "")
-		end
-	end
-
-	S:HandleSirusButton(ClassTrainerCancelButton)
 	S:HandleSirusButton(ClassTrainerTrainButton)
-
-	ClassTrainerMoneyBg:StripTextures()
-
-	hooksecurefunc("ClassTrainer_SetSelection", function()
-		local skillIcon = ClassTrainerSkillIcon:GetNormalTexture()
-		if skillIcon then
-			skillIcon:SetInside()
-			skillIcon:SetTexCoords()
-		end
-	end)
 end
 
 S:AddCallbackForAddon("Blizzard_TrainerUI", "Skin_Blizzard_TrainerUI", LoadSkin)

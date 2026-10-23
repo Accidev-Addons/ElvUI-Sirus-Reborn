@@ -80,7 +80,8 @@ P.general = {
 		WARLOCK = { b = 0.93, g = 0.53, r = 0.52 },
 		DEATHKNIGHT = { b = 0.22, g = 0.11, r = 0.76 },
 		DRUID = { b = 0.03, g = 0.48, r = 1 },
-		PALADIN = { b = 0.72, g = 0.54, r = 0.95 }
+		PALADIN = { b = 0.72, g = 0.54, r = 0.95 },
+		MONK = { b = 0.59, g = 1, r = 0 }
 	},
 	debuffColors = { -- handle colors of LibDispel
 		none = { r = 0.8, g = 0, b = 0 },
@@ -140,12 +141,6 @@ P.general = {
 				texture = "Mail0",
 				position = "TOPRIGHT",
 				xOffset = -3,
-				yOffset = -3,
-			},
-			battlefield = {
-				scale = 1.1,
-				position = "BOTTOMRIGHT",
-				xOffset = 3,
 				yOffset = -3,
 			},
 			difficulty = {
@@ -1532,11 +1527,6 @@ P.unitframe = {
 			ENERGY = {r = 0.65, g = 0.63, b = 0.35},
 			RUNIC_POWER = {r = 0, g = 0.82, b = 1}
 		},
-		happiness = {
-			{r = .69, g = .31, b = .31},
-			{r = .65, g = .63, b = .35},
-			{r = .33, g = .59, b = .33},
-		},
 		reaction = {
 			BAD = { r = 0.78, g = 0.25, b = 0.25 },
 			NEUTRAL = { r = 0.85, g = 0.77, b = 0.36 },
@@ -2686,11 +2676,6 @@ P.unitframe = {
 				fullOverlay = false,
 				style = "3D",
 				overlayAlpha = 0.35
-			},
-			happiness = {
-				enable = false,
-				autoHide = false,
-				width = 10
 			},
 			buffs = {
 				enable = false,
@@ -4629,6 +4614,7 @@ P.actionbar.bar1.paging.WARLOCK = '[form:1] 7;'
 P.actionbar.bar1.paging.DRUID = '[bonusbar:1,nostealth] 7; [bonusbar:1,stealth] 8; [bonusbar:2] 10; [bonusbar:3] 9; [bonusbar:4] 10;'
 P.actionbar.bar1.paging.PRIEST = '[bonusbar:1] 7;'
 P.actionbar.bar1.paging.WARRIOR = '[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;'
+P.actionbar.bar1.paging.MONK = '[bonusbar:1] 7; [bonusbar:2] 8; [bonusbar:3] 9;'
 
 P.actionbar.bar3.enabled = true
 P.actionbar.bar3.buttons = 6

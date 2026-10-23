@@ -10,11 +10,10 @@ local function LoadSkin()
 
 	S:HandleSirusScrollFrame(MacroButtonScrollFrame, true)
 	S:HandleSirusScrollFrame(MacroFrameScrollFrame)
-	S:HandleSirusScrollFrame(MacroPopupScrollFrame)
 
 	local buttons = {
 		"MacroDeleteButton", "MacroNewButton", "MacroExitButton", "MacroEditButton",
-		"MacroPopupOkayButton", "MacroPopupCancelButton"
+		"MacroCancelButton", "MacroSaveButton"
 	}
 	for i = 1, #buttons do
 		S:HandleSirusButton(_G[buttons[i]], true)
@@ -22,10 +21,8 @@ local function LoadSkin()
 
 	for i = 1, 2 do
 		local tab = _G["MacroFrameTab"..i]
-		if tab then
-			S:HandleSirusTab(tab, i > 1 and _G["MacroFrameTab"..(i - 1)])
-			tab:Height(22)
-		end
+		S:HandleSirusTab(tab, i > 1 and _G["MacroFrameTab"..(i - 1)])
+		tab:Height(22)
 	end
 
 	MacroFrameTextBackground:StripTextures()
@@ -38,7 +35,6 @@ local function LoadSkin()
 
 	MacroFrameSelectedMacroButton:StripTextures()
 	MacroFrameSelectedMacroButton:StyleButton(nil, true)
-	MacroFrameSelectedMacroButton:GetNormalTexture():SetTexture(nil)
 	MacroFrameSelectedMacroButton:SetTemplate("Default")
 	MacroFrameSelectedMacroButtonIcon:SetTexCoords()
 	MacroFrameSelectedMacroButtonIcon:SetInside()
@@ -59,9 +55,7 @@ local function LoadSkin()
 		end
 	end
 
-	S:HandleIconSelectionFrame(MacroPopupFrame, NUM_MACRO_ICONS_SHOWN, "MacroPopupButton", "MacroPopup")
-	MacroPopupFrame.BorderBox:StripTextures()
-	S:HandleEditBox(MacroPopupSearchBox)
+	S:HandleIconSelectionFrame(MacroPopupFrame)
 end
 
-S:AddCallback("Skin_Macro", LoadSkin)
+S:AddCallbackForAddon("Blizzard_MacroUI", "Skin_Macro", LoadSkin)

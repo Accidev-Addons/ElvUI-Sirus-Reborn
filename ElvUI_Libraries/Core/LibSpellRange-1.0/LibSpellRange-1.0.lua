@@ -24,7 +24,8 @@ local type = _G.type
 
 local GetSpellInfo = _G.GetSpellInfo
 local GetSpellLink = _G.GetSpellLink
-local GetSpellName = _G.GetSpellName
+local GetSpellBookItemName = _G.GetSpellBookItemName
+local GetSpellBookItemInfo = _G.GetSpellBookItemInfo
 local GetSpellTabInfo = _G.GetSpellTabInfo
 local GetNumSpellTabs = _G.GetNumSpellTabs
 local HasPetSpells = _G.HasPetSpells
@@ -105,18 +106,21 @@ local function UpdateBook(bookType)
 	wipe(spellsByID)
 
 	for spellBookID = 1, max do
-		local spellName, rank = GetSpellName(spellBookID, bookType)
+		local spellName, rank = GetSpellBookItemName(spellBookID, bookType)
+		local spellType, bookSpellID = GetSpellBookItemInfo(spellBookID, bookType)
 
-		if spellName and (rank == "" or rank:match("%d+")) then
-			local link = GetSpellLink(spellName, rank)
+		if spellName and spellType ~= "FLYOUT" and (not rank or rank == "" or rank:match("%d+")) then
+			local link = GetSpellLink(spellBookID, bookType)
 			local spellID = link and GetSpellIDFromLink(link)
 
-			if spellName then
-				spellsByName[strlower(spellName)] = spellBookID
-			end
+			spellsByName[strlower(spellName)] = spellBookID
 
 			if spellID then
 				spellsByID[spellID] = spellBookID
+			end
+
+			if bookSpellID and spellType == "SPELL" then
+				spellsByID[bookSpellID] = spellBookID
 			end
 		end
 	end

@@ -82,8 +82,9 @@ local UnitIsPlayer = _G.UnitIsPlayer
 local UnitName = _G.UnitName
 local UnitExists = _G.UnitExists
 local UnitGUID = _G.UnitGUID
-local GetNumRaidMembers = _G.GetNumRaidMembers
-local GetNumPartyMembers = _G.GetNumPartyMembers
+local IsInRaid = _G.IsInRaid
+local GetNumGroupMembers = _G.GetNumGroupMembers
+local GetNumSubgroupMembers = _G.GetNumSubgroupMembers
 local UnitIsVisible = _G.UnitIsVisible
 local UnitIsConnected = _G.UnitIsConnected
 local UnitCanAttack = _G.UnitCanAttack
@@ -97,9 +98,9 @@ end
 
 -- GuidToUnitID
 local function GuidToUnitID(guid)
-	local prefix, min, max = "raid", 1, GetNumRaidMembers()
-	if max == 0 then
-		prefix, min, max = "party", 0, GetNumPartyMembers()
+	local prefix, min, max = "raid", 1, GetNumGroupMembers()
+	if not IsInRaid() then
+		prefix, min, max = "party", 0, GetNumSubgroupMembers()
 	end
 
 	-- Prioritise getting direct units first because other players targets

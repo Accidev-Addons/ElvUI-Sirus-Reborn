@@ -468,7 +468,7 @@ end
 function A:Header_StartTicker(header)
 	if header.ticker then return end
 
-	header.ticker = C_Timer:NewTicker(TICK_INTERVAL, function()
+	header.ticker = C_Timer.NewTicker(TICK_INTERVAL, function()
 		A:Header_Tick(header)
 	end)
 end

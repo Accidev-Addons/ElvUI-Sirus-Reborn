@@ -98,7 +98,7 @@ function BL:PositionAlwaysUpFrame()
 		alwaysUpFramesUpdate()
 
 		if numExtendedUIFrames < (_G.NUM_EXTENDED_UI_FRAMES or 0) then
-			C_Timer:After(0, captureBarsUpdate)
+			C_Timer.After(0, captureBarsUpdate)
 		end
 	end)
 

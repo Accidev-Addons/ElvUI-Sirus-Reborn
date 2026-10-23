@@ -8,7 +8,6 @@ local GetItemInfo = C_Item.GetItemInfo
 local GetLFGDungeonRewardLink = GetLFGDungeonRewardLink
 local GetLFGDungeonShortageRewardInfo = GetLFGDungeonShortageRewardInfo
 local hooksecurefunc = hooksecurefunc
-local find = string.find
 
 local function SkinMiniGameReward(frame)
 	local icon = frame.Icon or _G[frame:GetName().."IconTexture"]
@@ -75,59 +74,34 @@ end
 local function LoadSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.lfd then return end
 
-	S:HandlePortraitFrame(LFDParentFrame)
-	LFDParentFrame:SetTemplate("Transparent")
-	LFDParentFrame.LeftInset:StripTextures()
-	LFDParentFrame.Shadows:StripTextures()
+	S:HandlePortraitFrame(PVEFrame)
+	PVEFrame.shadows:StripTextures()
 
-	for i = 1, LFDParentFrame:GetNumChildren() do
-		local child = select(i, LFDParentFrame:GetChildren())
-		if child and child:GetName() and find(child:GetName(), "Art") then
-			child:StripTextures()
-		end
-	end
-
-	S:HandleSirusTabs("LFDParentFrameTab", 4)
-	local tabstorem = {
-		"LFDParentFrameTab",
-		"PVPUIFrameTab",
-		"ChallengesFrameTab",
-		"LadderFrameTab",
-	}
-	for _, tab in pairs(tabstorem) do
-		tab = _G[tab .. 1]
-		if tab then
-			tab:ClearAllPoints()
-			tab:SetPoint("BOTTOMLEFT", 2, -30)
-		end
-	end
+	S:HandleSirusTabs("PVEFrameTab", 4)
+	PVEFrameTab1:ClearAllPoints()
+	PVEFrameTab1:SetPoint("BOTTOMLEFT", 2, -30)
 
 	local rewardSize, rewardGap, nameInset = 16, 4, 69
 
-	for i = 1, 3 do
-		local button = _G["LFDParentFrameGroupButton" .. i]
-		if button then
-			button.ring:Kill()
-			button.bg:Kill()
-			S:HandleButton(button)
-			button.icon:Size(45)
-			button.icon:ClearAllPoints()
-			button.icon:Point("LEFT", 10, 0)
-			button.icon:SetTexCoord(unpack(E.TexCoords))
-			button.icon:CreateBackdrop()
-			button.icon:SetParent(button.icon.backdrop)
-			button.icon.backdrop:SetFrameLevel(button:GetFrameLevel() + 2)
+	for i = 1, 4 do
+		local button = _G["GroupFinderFrameGroupButton" .. i]
+		button.ring:Kill()
+		button.bg:Kill()
+		S:HandleButton(button)
+		button.icon:Size(45)
+		button.icon:ClearAllPoints()
+		button.icon:Point("LEFT", 10, 0)
+		button.icon:SetTexCoord(unpack(E.TexCoords))
+		button.icon:CreateBackdrop()
+		button.icon.backdrop:SetBackdropColor(0, 0, 0, 0)
 
-			local name = button.name
-			if name then
-				name:SetJustifyV("MIDDLE")
-				name:SetHeight(button:GetHeight())
-				name:ClearAllPoints()
-				name:Point("LEFT", button.icon, "RIGHT", 8, 0)
-				name:Point("RIGHT", button, "RIGHT", -6, 0)
-				name:SetWidth(button:GetWidth() - nameInset)
-			end
-		end
+		local name = button.name
+		name:SetJustifyV("MIDDLE")
+		name:SetHeight(button:GetHeight())
+		name:ClearAllPoints()
+		name:Point("LEFT", button.icon, "RIGHT", 8, 0)
+		name:Point("RIGHT", button, "RIGHT", -6, 0)
+		name:SetWidth(button:GetWidth() - nameInset)
 	end
 
 	local function SkinGroupButtonReward(frame, rewardIndex)
@@ -147,9 +121,8 @@ local function LoadSkin()
 		end
 
 		if frame.dungeonID then
-			local _, texturePath = GetLFGDungeonShortageRewardInfo(frame.dungeonID, rewardIndex or 1)
+			local _, texturePath = GetLFGDungeonShortageRewardInfo(frame.dungeonID, frame.shortageIndex or 1, rewardIndex or 1)
 			if texturePath then
-				SetPortraitToTexture(frame.texture, "")
 				frame.texture:SetTexture(texturePath)
 			end
 		end
@@ -191,10 +164,9 @@ local function LoadSkin()
 
 	hooksecurefunc("LFDDungeonGroupButton_UpdateRewards", UpdateGroupButtonRewards)
 
-	UpdateGroupButtonRewards(LFDParentFrameGroupButton1)
+	UpdateGroupButtonRewards(GroupFinderFrameGroupButton1)
 
-	LFDQueueParentFrame:StripTextures()
-	LFDQueueParentFrameInset:StripTextures()
+	LFDParentFrame:StripTextures()
 
 	LFDQueueFrame:StripTextures(true)
 
@@ -231,11 +203,10 @@ local function LoadSkin()
 		local incentive = roleButton.incentiveIcon
 		local tex = incentiveIndex and incentiveTextures[incentiveIndex]
 		if not (tex and incentive and incentive.backdrop) then return end
-		SetPortraitToTexture(incentive.texture, "")
 		incentive.texture:SetTexture(tex)
 		incentive.texture:SetTexCoord(unpack(E.TexCoords))
 	end)
-	LFDQueueFrame_UpdateRoleButtons()
+	LFDQueueFrame_UpdateRoleIncentives()
 
 	S:HandleDropDownBox(LFDQueueFrameTypeDropDown, 150)
 	LFDQueueFrameTypeDropDown:ClearAllPoints()
@@ -376,35 +347,65 @@ local function LoadSkin()
 
 	S:HandleButton(LFDQueueFrameNoLFDWhileLFRLeaveQueueButton)
 
-	LFDDungeonReadyStatus:SetTemplate("Transparent")
+	RaidFinderFrame:StripTextures()
+	RaidFinderQueueFrame:StripTextures(true)
 
-	if LFDDungeonReadyStatusCloseButton then
-		S:HandleCloseButton(LFDDungeonReadyStatusCloseButton, nil, "-")
+	for _, roleButton in next, { RaidFinderQueueFrameRoleButtonTank, RaidFinderQueueFrameRoleButtonHealer, RaidFinderQueueFrameRoleButtonDPS, RaidFinderQueueFrameRoleButtonLeader } do
+		S:HandleCheckBox(roleButton.checkButton)
+		roleButton.checkButton:SetFrameLevel(roleButton.checkButton:GetFrameLevel() + 2)
 	end
 
-	LFDDungeonReadyDialog:SetTemplate("Transparent")
+	S:HandleDropDownBox(RaidFinderQueueFrameSelectionDropDown)
+	RaidFinderQueueFrameScrollFrame:StripTextures()
+	S:HandleSirusScrollBar(RaidFinderQueueFrameScrollFrameScrollBar)
 
-	LFDDungeonReadyDialog.label:Size(280, 0)
-	LFDDungeonReadyDialog.label:Point("TOP", 0, -10)
+	S:HandleButton(RaidFinderFrameFindRaidButton, true)
+	S:HandleButton(RaidFinderQueueFramePartyBackfillBackfillButton)
+	S:HandleButton(RaidFinderQueueFramePartyBackfillNoBackfillButton)
+	S:HandleButton(RaidFinderQueueFrameIneligibleFrameLeaveQueueButton)
 
-	LFDDungeonReadyDialog:CreateBackdrop("Default")
-	LFDDungeonReadyDialog.backdrop:Point("TOPLEFT", 10, -35)
-	LFDDungeonReadyDialog.backdrop:Point("BOTTOMRIGHT", -10, 40)
+	ScenarioFinderFrame:StripTextures()
+	ScenarioQueueFrame:StripTextures()
 
-	LFDDungeonReadyDialog.backdrop:SetFrameLevel(LFDDungeonReadyDialog:GetFrameLevel())
-	LFDDungeonReadyDialog.background:SetInside(LFDDungeonReadyDialog.backdrop)
+	S:HandleDropDownBox(ScenarioQueueFrameTypeDropDown)
+	ScenarioQueueFrameRandomScrollFrame:StripTextures()
+	S:HandleSirusScrollBar(ScenarioQueueFrameRandomScrollFrameScrollBar)
+	ScenarioQueueFrameSpecificScrollFrame:StripTextures()
+	S:HandleSirusScrollBar(ScenarioQueueFrameSpecificScrollFrameScrollBar)
 
-	LFDDungeonReadyDialogFiligree:SetTexture("")
-	LFDDungeonReadyDialogBottomArt:SetTexture("")
+	S:HandleButton(ScenarioQueueFrameFindGroupButton, true)
+	S:HandleButton(ScenarioQueueFramePartyBackfillBackfillButton)
+	S:HandleButton(ScenarioQueueFramePartyBackfillNoBackfillButton)
 
-	if LFDDungeonReadyDialogCloseButton then
-		S:HandleCloseButton(LFDDungeonReadyDialogCloseButton, nil, "-")
-	end
+	FlexRaidFrame:StripTextures()
+	S:HandleDropDownBox(FlexRaidFrameSelectionDropDown)
+	S:HandleSirusScrollBar(FlexRaidFrameScrollFrameScrollBar)
+	S:HandleButton(FlexRaidFrameStartRaidButton, true)
 
-	LFDDungeonReadyDialogEnterDungeonButton:Point("BOTTOMRIGHT", LFDDungeonReadyDialog, "BOTTOM", -7, 10)
-	S:HandleButton(LFDDungeonReadyDialogEnterDungeonButton)
-	LFDDungeonReadyDialogLeaveQueueButton:Point("BOTTOMLEFT", LFDDungeonReadyDialog, "BOTTOM", 7, 10)
-	S:HandleButton(LFDDungeonReadyDialogLeaveQueueButton)
+	LFGDungeonReadyStatus:SetTemplate("Transparent")
+	S:HandleCloseButton(LFGDungeonReadyStatusCloseButton, nil, "-")
+
+	LFGDungeonReadyDialog:SetTemplate("Transparent")
+
+	LFGDungeonReadyDialog.label:Size(280, 0)
+	LFGDungeonReadyDialog.label:Point("TOP", 0, -10)
+
+	LFGDungeonReadyDialog:CreateBackdrop("Default")
+	LFGDungeonReadyDialog.backdrop:Point("TOPLEFT", 10, -35)
+	LFGDungeonReadyDialog.backdrop:Point("BOTTOMRIGHT", -10, 40)
+
+	LFGDungeonReadyDialog.backdrop:SetFrameLevel(LFGDungeonReadyDialog:GetFrameLevel())
+	LFGDungeonReadyDialog.background:SetInside(LFGDungeonReadyDialog.backdrop)
+
+	LFGDungeonReadyDialogFiligree:SetTexture("")
+	LFGDungeonReadyDialogBottomArt:SetTexture("")
+
+	S:HandleCloseButton(LFGDungeonReadyDialogCloseButton, nil, "-")
+
+	LFGDungeonReadyDialogEnterDungeonButton:Point("BOTTOMRIGHT", LFGDungeonReadyDialog, "BOTTOM", -7, 10)
+	S:HandleButton(LFGDungeonReadyDialogEnterDungeonButton)
+	LFGDungeonReadyDialogLeaveQueueButton:Point("BOTTOMLEFT", LFGDungeonReadyDialog, "BOTTOM", 7, 10)
+	S:HandleButton(LFGDungeonReadyDialogLeaveQueueButton)
 
 	local function SkinLFDDungeonReadyDialogReward(button)
 		if button.isSkinned or not button.texture then return end
@@ -417,14 +418,13 @@ local function LoadSkin()
 		button.isSkinned = true
 	end
 
-	hooksecurefunc("LFDDungeonReadyDialogReward_SetMisc", function(button)
+	hooksecurefunc("LFGDungeonReadyDialogReward_SetMisc", function(button)
 		SkinLFDDungeonReadyDialogReward(button)
 
-		SetPortraitToTexture(button.texture, "")
 		button.texture:SetTexture("Interface\\Icons\\inv_misc_coin_02")
 	end)
 
-	hooksecurefunc("LFDDungeonReadyDialogReward_SetReward", function(button, dungeonID, rewardIndex)
+	hooksecurefunc("LFGDungeonReadyDialogReward_SetReward", function(button, dungeonID, rewardIndex)
 		if not button or not button.texture then return end
 
 		SkinLFDDungeonReadyDialogReward(button)
@@ -439,7 +439,6 @@ local function LoadSkin()
 
 		local texturePath = button.texture:GetTexture()
 		if texturePath then
-			SetPortraitToTexture(button.texture, "")
 			button.texture:SetTexture(texturePath)
 		end
 	end)
@@ -453,275 +452,21 @@ local function LoadSkin()
 	S:HandleButton(LFDRoleCheckPopupAcceptButton)
 	S:HandleButton(LFDRoleCheckPopupDeclineButton)
 
-	LFDSearchStatus:SetTemplate("Transparent")
+	LFGInvitePopup:SetTemplate("Transparent")
+
+	S:HandleCheckBox(LFGInvitePopupRoleButtonTank.checkButton)
+	S:HandleCheckBox(LFGInvitePopupRoleButtonHealer.checkButton)
+	S:HandleCheckBox(LFGInvitePopupRoleButtonDPS.checkButton)
+
+	S:HandleButton(LFGInvitePopupAcceptButton)
+	S:HandleButton(LFGInvitePopupDeclineButton)
 
 	QueueStatusFrame:SetTemplate("Transparent")
-
-	S:HandlePortraitFrame(PVPUIFrame)
-	PVPUIFrame:SetTemplate("Transparent")
-	PVPUIFrame.LeftInset:StripTextures()
-	PVPUIFrame.Shadows:StripTextures()
-	S:HandleCheckBox(PVPHonorFrameBottomInsetBonusBattlegroundRadioButton)
-	S:HandleCheckBox(PVPHonorFrameBottomInsetSpecificBattlegroundRadioButton)
-
-	for i = 1, PVPUIFrame:GetNumChildren() do
-		local child = select(i, PVPUIFrame:GetChildren())
-		if child and child:GetName() and find(child:GetName(), "Art") then
-			child:StripTextures()
-		end
-	end
-
-	S:HandleSirusTabs("PVPUIFrameTab", 4)
-
-	for i = 1, 3 do
-		local b = PVPQueueFrame["CategoryButton" .. i]
-		b.Ring:Kill()
-		b.Background:Kill()
-		S:HandleButton(b)
-		b.Icon:Size(45)
-		b.Icon:ClearAllPoints()
-		b.Icon:Point("LEFT", 10, 0)
-		b.Icon:SetTexCoord(unpack(E.TexCoords))
-		b.Icon:CreateBackdrop()
-		b.Icon:SetParent(b.Icon.backdrop)
-		b.Icon.backdrop:SetFrameLevel(b:GetFrameLevel() + 2)
-	end
-
-	PVPQueueFrameBattlePassToggleButton.Ring:Kill()
-	PVPQueueFrameBattlePassToggleButton.Background:Kill()
-	S:HandleButton(PVPQueueFrameBattlePassToggleButton)
-	PVPQueueFrameBattlePassToggleButton.Icon:Size(45)
-	PVPQueueFrameBattlePassToggleButton.Icon:ClearAllPoints()
-	PVPQueueFrameBattlePassToggleButton.Icon:Point("LEFT", 10, 0)
-	PVPQueueFrameBattlePassToggleButton.Icon:SetTexCoord(0.15, .85, .15, .85)
-	PVPQueueFrameBattlePassToggleButton.Icon:CreateBackdrop()
-	PVPQueueFrameBattlePassToggleButton.Icon:SetParent(PVPQueueFrameBattlePassToggleButton.Icon.backdrop)
-	PVPQueueFrameBattlePassToggleButton.Name:SetParent(PVPQueueFrameBattlePassToggleButton.Icon.backdrop)
-	PVPQueueFrameBattlePassToggleButton.Icon.backdrop:SetFrameLevel(PVPQueueFrameBattlePassToggleButton:GetFrameLevel() +
-	2)
-	PVPQueueFrameBattlePassToggleButton.LevelFrame:SetFrameLevel(PVPQueueFrameBattlePassToggleButton:GetFrameLevel() + 3)
-
-	PVPQueueFrame.CapTopFrame:StripTextures()
-
-	PVPQueueFrame.CapTopFrame.StatusBar:CreateBackdrop()
-	PVPQueueFrame.CapTopFrame.StatusBar:SetStatusBarTexture(E.media.normTex)
-	E:RegisterStatusBar(PVPQueueFrame.CapTopFrame.StatusBar)
-	PVPQueueFrame.CapTopFrame.StatusBar.Left:Kill()
-	PVPQueueFrame.CapTopFrame.StatusBar.Right:Kill()
-	PVPQueueFrame.CapTopFrame.StatusBar.Middle:Kill()
-	PVPQueueFrame.CapTopFrame.StatusBar.Background:Kill()
-
-	hooksecurefunc(PVPQueueFrame.CapTopFrame.StatusBar, "SetBarValue", function(self, value)
-		if value then
-			local _, maxValue = self:GetMinMaxValues()
-			S:StatusBarColorGradient(self, value, maxValue)
-		end
-	end)
-
-	PVPQueueFrame.StepBottomFrame:StripTextures()
-	PVPQueueFrame.StepBottomFrame:CreateBackdrop()
-	PVPQueueFrame.StepBottomFrame.backdrop:SetInside(PVPQueueFrame.StepBottomFrame.ShadowOverlay)
-
-	PVPQueueFrame.StepBottomFrame.ShadowOverlay:StripTextures()
-
-	ConquestFrame.BottomInset:StripTextures()
-
-	S:HandleDropDownBox(ConquestFrameBottomInsetTypeDropDown)
-	ConquestFrame.BottomInset.ShadowOverlay:StripTextures()
-
-	local function StyleButton(button, icon)
-		button:StripTextures()
-		button:SetTemplate("Default", true)
-		button:StyleButton()
-
-		button:GetHighlightTexture():SetTexture(1, 1, 1, 0.1)
-		button:GetHighlightTexture():SetInside()
-
-		button.SelectedTexture:SetAlpha(0)
-
-		hooksecurefunc(button.SelectedTexture, "Show", function()
-			button:SetBackdropBorderColor(unpack(E.media.rgbvaluecolor))
-		end)
-		hooksecurefunc(button.SelectedTexture, "Hide", function()
-			button:SetBackdropBorderColor(unpack(E.media.bordercolor))
-		end)
-
-		if icon then
-			button.Icon:ClearAllPoints()
-			button.Icon:Point("LEFT", 10, 0)
-			button.Icon:SetTexCoord(unpack(E.TexCoords))
-			button.Icon:CreateBackdrop()
-			button.Icon:SetParent(button.Icon.backdrop)
-			button.Icon.backdrop:SetFrameLevel(button:GetFrameLevel() + 2)
-		end
-	end
-
-	local function StyleRewardFrame(frame)
-		frame.CurrencyReward:StripTextures()
-		frame.CurrencyReward:SetTemplate()
-		frame.LootReward.Background:SetAlpha(0)
-	end
-
-	ConquestFrame.BottomInset.ArenaContainer:StripTextures()
-	ConquestFrame.BottomInset.ArenaContainer.Header:StripTextures()
-	StyleRewardFrame(ConquestFrame.BottomInset.ArenaContainer.Header.RewardFrame)
-
-	StyleButton(ConquestFrame.BottomInset.ArenaContainer.Arena2v2)
-	ConquestFrame.BottomInset.ArenaContainer.Arena2v2:Point("TOP", ConquestFrame.BottomInset.ArenaContainer.Header,
-		"BOTTOM", 0, 10)
-	StyleButton(ConquestFrame.BottomInset.ArenaContainer.Arena1v1)
-	ConquestFrame.BottomInset.ArenaContainer.Arena1v1:Point("TOP", ConquestFrame.BottomInset.ArenaContainer.Arena2v2,
-		"BOTTOM", 0, -(E.Border * 2))
-
-	ConquestFrame.BottomInset.SoloArenaContainer:StripTextures()
-	ConquestFrame.BottomInset.SoloArenaContainer.Header:StripTextures()
-	StyleRewardFrame(ConquestFrame.BottomInset.SoloArenaContainer.Header.RewardFrame)
-
-	StyleButton(ConquestFrame.BottomInset.SoloArenaContainer.ArenaSolo)
-
-	ConquestFrame.BottomInset.ArenaSkirmishContainer:StripTextures()
-	ConquestFrame.BottomInset.ArenaSkirmishContainer.Header:StripTextures()
-	StyleRewardFrame(ConquestFrame.BottomInset.ArenaSkirmishContainer.Header.RewardFrame)
-
-	StyleButton(ConquestFrame.BottomInset.ArenaSkirmishContainer.ArenaSkirmish2v2)
-	StyleButton(ConquestFrame.BottomInset.ArenaSkirmishContainer.ArenaSkirmish1v1)
-
-	S:HandleButton(ConquestFrame.JoinButton, true)
-
-	S:HandleButton(PVPHonorFrame.SoloQueueButton, true)
-	S:HandleButton(PVPHonorFrame.GroupQueueButton, true)
-
-	PVPHonorFrame.BottomInset:StripTextures()
-
-	S:HandleDropDownBox(PVPHonorFrameBottomInsetTypeDropDown)
-
-	PVPHonorFrame.BottomInset.BonusBattlefieldContainer:StripTextures()
-	PVPHonorFrame.BottomInset.BonusBattlefieldContainer.Header:StripTextures()
-	StyleRewardFrame(PVPHonorFrame.BottomInset.BonusBattlefieldContainer.Header.RewardFrame)
-
-	StyleButton(PVPHonorFrame.BottomInset.BonusBattlefieldContainer.RandomBGButton)
-	PVPHonorFrame.BottomInset.BonusBattlefieldContainer.RandomBGButton:Point("TOP",
-		PVPHonorFrame.BottomInset.BonusBattlefieldContainer.Header, "BOTTOM", 0, 10)
-	StyleButton(PVPHonorFrame.BottomInset.BonusBattlefieldContainer.CallToArmsButton)
-	PVPHonorFrame.BottomInset.BonusBattlefieldContainer.CallToArmsButton:Point("TOP",
-		PVPHonorFrame.BottomInset.BonusBattlefieldContainer.RandomBGButton, "BOTTOM", 0, -(E.Border * 2))
-
-	PVPHonorFrame.BottomInset.WorldPVPContainer:StripTextures()
-	PVPHonorFrame.BottomInset.WorldPVPContainer.Header:StripTextures()
-	StyleRewardFrame(PVPHonorFrame.BottomInset.WorldPVPContainer.Header.RewardFrame)
-
-	StyleButton(PVPHonorFrame.BottomInset.WorldPVPContainer.WorldPVP2Button)
-
-	PVPHonorFrameSpecificFrame:StripTextures()
-	S:HandleSirusScrollBar(PVPHonorFrameSpecificFrameScrollBar)
-
-	for i = 1, #PVPHonorFrameSpecificFrame.buttons do
-		local button = PVPHonorFrameSpecificFrame.buttons[i]
-		button:Width(309)
-		if i == 1 then
-			button:SetPoint("TOPLEFT", PVPHonorFrameSpecificFrame.scrollChild, "TOPLEFT", E.Border, -E.Border)
-		else
-			button:SetPoint("TOPLEFT", PVPHonorFrameSpecificFrame.buttons[i - 1], "BOTTOMLEFT", 0, -E.Border)
-		end
-
-		StyleButton(button, true)
-	end
-
-	PVPHonorFrameSpecificFrame.buttonHeight = PVPHonorFrameSpecificFrame.buttonHeight - 4
-	PVPHonorFrameSpecificFrame.scrollChild:SetHeight(#PVPHonorFrameSpecificFrame.buttons *
-	PVPHonorFrameSpecificFrame.buttonHeight)
-	PVPHonorFrameSpecificFrame.scrollBar:SetMinMaxValues(0,
-		#PVPHonorFrameSpecificFrame.buttons * PVPHonorFrameSpecificFrame.buttonHeight)
-
-	PVPHonorFrame.BottomInset.ShadowOverlay:StripTextures()
-
-	RatedBattlegroundFrameInset:StripTextures()
-	RatedBattlegroundFrame.Container:StripTextures()
-
-	RatedBattlegroundProgressBarFrame:CreateBackdrop()
-	RatedBattlegroundProgressBarFrame.Progress:SetTexture(E.media.normTex)
-	E:RegisterStatusBar(RatedBattlegroundProgressBarFrame.Progress)
-	RatedBattlegroundProgressBarFrame.backdrop:Point("TOPLEFT", RatedBattlegroundProgressBarFrame.Progress, -1, 1)
-	RatedBattlegroundProgressBarFrame.backdrop:Point("BOTTOMRIGHT", RatedBattlegroundProgressBarFrame.Background, -21, 0)
-	RatedBattlegroundProgressBarFrame.Frame:Kill()
-	RatedBattlegroundProgressBarFrame.Level:SetPoint("CENTER", 0, 1)
-	RatedBattlegroundProgressBarFrame.Background:Kill()
-
-	hooksecurefunc("RateBattleground_SetProgress", function(bar, value)
-		if value then
-			local r, g, b = E:ColorGradient(value * 100, 0.8, 0, 0, 0.8, 0.8, 0, 0, 0.8, 0)
-			bar.backdrop:SetBackdropColor(r * 0.25, g * 0.25, b * 0.25)
-			bar.Progress:SetVertexColor(r, g, b)
-		end
-	end)
-
-	PVPUIHonorLabel:StripTextures()
-
-	RatedBattlegroundStatisticsScrollFrame:StripTextures()
-	S:HandleSirusScrollBar(RatedBattlegroundStatisticsScrollFrameScrollBar)
-
-	RatedBattlegroundStatisticsScrollFrame:HookScript("OnShow", function()
-		for i = 1, #RatedBattlegroundStatisticsScrollFrame.buttons do
-			local button = RatedBattlegroundStatisticsScrollFrame.buttons[i]
-			if not button.isSkinned then
-				button:SetTemplate("Transparent")
-
-				button.Background:SetDrawLayer("BORDER")
-				button.Background:SetInside()
-				button.Background:SetGradientAlpha("HORIZONTAL", 0, 0, 0, 0, 1, 1, 1, 1)
-
-				S:HandleSirusToggle(button.TogglePlus, E.Media.Textures.Plus)
-				S:HandleSirusToggle(button.ToggleMinus, E.Media.Textures.Minus)
-
-				button.isSkinned = true
-			end
-		end
-	end)
-
-	S:HandleButton(RatedBattlegroundFrame.SoloQueueButton, true)
-	S:HandleButton(RatedBattlegroundFrame.GroupQueueButton, true)
-	S:HandleButton(RatedBattlegroundFrame.StatisticsButton, true)
-
-	ConquestTooltip:SetTemplate("Transparent")
-
-	PVPUI_ArenaTeamDetails:StripTextures()
-	PVPUI_ArenaTeamDetails:SetTemplate("Transparent")
-	PVPUI_ArenaTeamDetailsHbar:StripTextures()
-
-	S:HandleTab(PVPUI_ArenaTeamDetailsTab1)
-	S:HandleTab(PVPUI_ArenaTeamDetailsTab2)
-
-	if PVPUI_ArenaTeamDetailsCloseButton then
-		S:HandleCloseButton(PVPUI_ArenaTeamDetailsCloseButton)
-	end
-	S:HandleDropDownBox(PVPDropDown)
-
-	for i = 1, 5 do
-		_G["PVPUI_ArenaTeamDetailsColumnHeader" .. i]:StripTextures()
-	end
-	for i = 1, 10 do
-		_G["PVPUI_ArenaTeamDetailsButton" .. i]:StripTextures()
-	end
-
-	S:HandleButton(PVPUI_ArenaTeamDetailsAddTeamMember)
-
-	S:HandlePortraitFrame(LadderFrame)
-	LadderFrame:SetTemplate("Transparent")
-	if LadderFrame.Inset then LadderFrame.Inset:StripTextures() end
 
 	S:ApplyElvUIFont(LadderFrame)
 	LadderFrame:HookScript("OnShow", function(self)
 		S:ApplyElvUIFont(self)
 	end)
-
-	for i = 1, LadderFrame:GetNumChildren() do
-		local child = select(i, LadderFrame:GetChildren())
-		if child and child:GetName() and find(child:GetName(), "Art") then
-			child:StripTextures()
-		end
-	end
-
-	S:HandleSirusTabs("LadderFrameTab", 4)
 
 	if LadderFrame.CardButtons then
 		local function SkinLadderCardButtons()
@@ -743,9 +488,6 @@ local function LoadSkin()
 		LadderFrame:HookScript("OnShow", SkinLadderCardButtons)
 	end
 
-	S:HandleCheckBox(ConquestFrameBottomInsetRatedConquestRadioButton)
-	S:HandleCheckBox(ConquestFrameBottomInsetSkirmishConquestRadioButton)
-
 	local c = .035
 	local tc = {
 		{ .253906 + c, 0.503906 - c, 0.507813 + c, 0.757813 - c },
@@ -766,13 +508,8 @@ local function LoadSkin()
 		local iconAtlas = b.Icon._atlasName or b:GetAttribute("iconAtlas")
 		if iconAtlas then
 			b.Icon:SetAtlas(iconAtlas)
-		else
-			local texture = b.Icon:GetTexture()
-			SetPortraitToTexture(b.Icon, "")
-			b.Icon:SetTexture(texture)
-			if tc[i] then
-				b.Icon:SetTexCoord(unpack(tc[i]))
-			end
+		elseif tc[i] then
+			b.Icon:SetTexCoord(unpack(tc[i]))
 		end
 
 		if b.Name then b.Name:FontTemplate(nil, 16) end
@@ -958,208 +695,16 @@ local function LoadSkin()
 		SkinLadderSubPanel(LadderMythicPlusFrame)
 	end
 
-	if ChallengesFrame then
-		S:HandlePortraitFrame(ChallengesFrame)
-		ChallengesFrame:SetTemplate("Transparent")
+	MiniGamesFrame:StripTextures()
+	MiniGamesFrame.TopInset:StripTextures()
+	MiniGamesFrame.BottomInset:StripTextures()
+	MiniGamesFrame.BottomInset.Background:Kill()
+	S:HandleButton(MiniGamesFrameFindGroupButton, true)
 
-		for i = 1, ChallengesFrame:GetNumChildren() do
-			local child = select(i, ChallengesFrame:GetChildren())
-			if child and child:GetName() and find(child:GetName(), "Art") then
-				child:StripTextures()
-			end
-		end
+	MiniGamesFrameBottomInsetScrollFrame:StripTextures()
+	S:HandleSirusScrollBar(MiniGamesFrameBottomInsetScrollFrameScrollBar)
 
-		S:HandleSirusTabs("ChallengesFrameTab", 4)
-
-		local function SkinAffixFrame(frame)
-			if not frame or frame.isSkinned then return end
-
-			if frame.Border then
-				frame.Border:Kill()
-			end
-
-			if frame.Portrait then
-				frame.Portrait:SetTexCoord(unpack(E.TexCoords))
-				frame.Portrait:SetInside(frame, 2, 2)
-			end
-
-			frame:CreateBackdrop("Default")
-			if frame.Portrait then
-				frame.Portrait:SetParent(frame.backdrop)
-			end
-
-			if frame.Percent then
-				frame.Percent:SetParent(frame.backdrop)
-				frame.Percent:SetDrawLayer("OVERLAY")
-			end
-
-			frame.isSkinned = true
-		end
-
-		hooksecurefunc(ChallengesKeystoneFrameAffixMixin, "SetUp", function(self)
-			SkinAffixFrame(self)
-		end)
-
-		if ChallengesFrame.WeeklyInfo and ChallengesFrame.WeeklyInfo.Child then
-			local chest = ChallengesFrame.WeeklyInfo.Child.WeeklyChest
-			if chest then
-				if chest.RunStatus then
-					chest.RunStatus:FontTemplate(nil, 13)
-				end
-			end
-		end
-	end
-
-	if ChallengesKeystoneFrame then
-		ChallengesKeystoneFrame:StripTextures()
-		ChallengesKeystoneFrame:SetTemplate("Transparent")
-
-		if ChallengesKeystoneFrame.CloseButton then
-			S:HandleCloseButton(ChallengesKeystoneFrame.CloseButton)
-		end
-		if ChallengesKeystoneFrame.StartButton then
-			S:HandleButton(ChallengesKeystoneFrame.StartButton)
-		end
-
-		if ChallengesKeystoneFrame.InstructionBackground then
-			ChallengesKeystoneFrame.InstructionBackground:SetAlpha(0)
-		end
-
-		local keystoneDecor = {
-			"RuneBG", "SlotBG", "BgBurst2", "PentagonLines",
-			"LargeCircleGlow", "SmallCircleGlow",
-			"RunesLarge", "GlowBurstLarge", "RunesSmall", "GlowBurstSmall",
-			"RuneCircleT", "RuneCircleR", "RuneCircleBR", "RuneCircleBL", "RuneCircleL",
-			"RuneT", "RuneR", "RuneBR", "RuneBL", "RuneL",
-			"LargeRuneGlow", "SmallRuneGlow", "KeystoneSlotGlow",
-		}
-		for _, key in ipairs(keystoneDecor) do
-			if ChallengesKeystoneFrame[key] then
-				ChallengesKeystoneFrame[key]:SetAlpha(0)
-			end
-		end
-
-		if ChallengesKeystoneFrame.KeystoneFrame then
-			ChallengesKeystoneFrame.KeystoneFrame:SetAlpha(0)
-		end
-
-		if ChallengesKeystoneFrame.KeystoneSlot then
-			local slot = ChallengesKeystoneFrame.KeystoneSlot
-			slot:CreateBackdrop("Default")
-			slot:Size(52, 52)
-			if slot.Texture then
-				slot.Texture:SetTexCoord(unpack(E.TexCoords))
-				slot.Texture:SetInside(slot.backdrop)
-				slot.Texture:SetParent(slot.backdrop)
-			end
-		end
-	end
-
-	if ChallengesInspectFrame then
-		S:HandlePortraitFrame(ChallengesInspectFrame)
-		ChallengesInspectFrame:SetTemplate("Transparent")
-
-		ChallengesInspectFrame:SetMovable(true)
-		ChallengesInspectFrame:RegisterForDrag("LeftButton")
-		ChallengesInspectFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
-		ChallengesInspectFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
-
-		for i = 1, ChallengesInspectFrame:GetNumChildren() do
-			local child = select(i, ChallengesInspectFrame:GetChildren())
-			if child and child:GetName() and find(child:GetName(), "Art") then
-				child:StripTextures()
-			end
-		end
-
-		if ChallengesInspectFrame.PlayerInfo and ChallengesInspectFrame.PlayerInfo.Child then
-			local child = ChallengesInspectFrame.PlayerInfo.Child
-			local runeKeys = {"RuneBG", "RunesLarge", "RunesSmall", "LargeRuneGlow", "SmallRuneGlow"}
-			for _, key in ipairs(runeKeys) do
-				if child[key] then
-					child[key]:SetAlpha(0)
-				end
-			end
-		end
-
-		local function SkinInspectDungeonIcon(self)
-			if self.isSkinned then return end
-
-			if self.Border then
-				self.Border:Kill()
-			end
-
-			if self.Icon then
-				self.Icon:SetTexCoord(unpack(E.TexCoords))
-				self.Icon:SetInside(self, 2, 2)
-			end
-
-			self:CreateBackdrop("Default")
-			if self.Icon then
-				self.Icon:SetParent(self.Content or self)
-				self.Icon:SetDrawLayer("BACKGROUND", 1)
-			end
-
-			if self.Shadow then
-				self.Shadow:Kill()
-			end
-
-			if self.Content and self.Content.Level then
-				self.Content.Level:FontTemplate(nil, 24, "OUTLINE")
-			end
-
-			self.isSkinned = true
-		end
-
-		local function SkinInspectMemberIcon(self)
-			if self.isSkinned then return end
-
-			if self.Border then
-				self.Border:Kill()
-			end
-
-			if self.Icon then
-				self.Icon:SetTexCoord(unpack(E.TexCoords))
-				self.Icon:SetDrawLayer("ARTWORK")
-				self.Icon:SetInside(self, 2, 2)
-			end
-
-			self:CreateBackdrop("Default")
-			if self.Icon then
-				self.Icon:SetParent(self.backdrop)
-			end
-
-			self.isSkinned = true
-		end
-
-		hooksecurefunc(ChallengesInspectIconDungeonIconMixin, "SetUp", function(self)
-			SkinInspectDungeonIcon(self)
-			if self.Content and self.Content.MembersContainer and self.Content.MembersContainer.Members then
-				for _, member in pairs(self.Content.MembersContainer.Members) do
-					SkinInspectMemberIcon(member)
-				end
-			end
-		end)
-
-		hooksecurefunc(ChallengesInspectMemberIconMixin, "OnLoad", function(self)
-			SkinInspectMemberIcon(self)
-		end)
-	end
-
-	MiniGamesParentFrame:StripTextures()
-	MiniGamesParentFrame.TopInset:StripTextures()
-	MiniGamesParentFrame.BottomInset:StripTextures()
-	MiniGamesParentFrame.BottomInset.Background:Kill()
-	S:HandleButton(MiniGamesParentFrameFindGroupButton, true)
-
-	if _G.MiniGamesParentFrameBottomInsetScrollFrame then
-		_G.MiniGamesParentFrameBottomInsetScrollFrame:StripTextures()
-		S:HandleSirusScrollBar(_G.MiniGamesParentFrameBottomInsetScrollFrameScrollBar)
-	end
-
-	if _G.LFDParentFrameArt then _G.LFDParentFrameArt:StripTextures() end
-	if _G.LFDParentFrameLeftArt then _G.LFDParentFrameLeftArt:StripTextures() end
-
-	hooksecurefunc(MiniGamesParentFrame, "UpdateGames", function(self)
+	hooksecurefunc(MiniGamesFrame, "UpdateGames", function(self)
 		if self.gameButtonPool then
 			for button in self.gameButtonPool:EnumerateActive() do
 				if not button.isSkinned then
@@ -1178,8 +723,8 @@ local function LoadSkin()
 		end
 	end)
 
-	hooksecurefunc(MiniGamesParentFrame, "SetSelectedGame", UpdateMiniGameRewards)
-	MiniGamesParentFrame:HookScript("OnShow", function(self)
+	hooksecurefunc(MiniGamesFrame, "SetSelectedGame", UpdateMiniGameRewards)
+	MiniGamesFrame:HookScript("OnShow", function(self)
 		UpdateMiniGameRewards(self)
 	end)
 
@@ -1196,15 +741,11 @@ local function LoadSkin()
 		end
 		MiniGameScoreFrameInset:StripTextures()
 		MiniGameScoreFrame:CreateBackdrop("Transparent")
-		if MiniGameScoreFrameContentScrollFrame then
-			MiniGameScoreFrameContentScrollFrame:StripTextures()
-			MiniGameScoreFrameContentScrollFrame:CreateBackdrop("Transparent")
-		end
+		MiniGameScoreFrameContentTableScrollFrame:StripTextures()
+		MiniGameScoreFrameContentTableScrollFrame:CreateBackdrop("Transparent")
 		if MiniGameScoreFrameCloseButton then S:HandleCloseButton(MiniGameScoreFrameCloseButton) end
 		S:HandleButton(MiniGameScoreFrameLeaveButton)
-		if MiniGameScoreFrameContentScrollFrameScrollBar then
-			S:HandleSirusScrollBar(MiniGameScoreFrameContentScrollFrameScrollBar)
-		end
+		S:HandleSirusScrollBar(MiniGameScoreFrameContentTableScrollFrameScrollBar)
 	end)
 	MiniGameReadyStatus:HookScript("OnShow", function()
 		MiniGameReadyStatus:StripTextures()
@@ -1632,4 +1173,166 @@ local function LoadSkin()
 
 end
 
+local function SkinChallenges()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.lfd then return end
+
+	ChallengesFrame:StripTextures()
+
+	local function SkinAffixFrame(frame)
+		if not frame or frame.isSkinned then return end
+
+		if frame.Border then
+			frame.Border:Kill()
+		end
+
+		if frame.Portrait then
+			frame.Portrait:SetTexCoord(unpack(E.TexCoords))
+			frame.Portrait:SetInside(frame, 2, 2)
+		end
+
+		frame:CreateBackdrop("Default")
+		if frame.Portrait then
+			frame.Portrait:SetParent(frame.backdrop)
+		end
+
+		if frame.Percent then
+			frame.Percent:SetParent(frame.backdrop)
+			frame.Percent:SetDrawLayer("OVERLAY")
+		end
+
+		frame.isSkinned = true
+	end
+
+	hooksecurefunc(ChallengesKeystoneFrameAffixMixin, "SetUp", function(self)
+		SkinAffixFrame(self)
+	end)
+
+	ChallengesFrame.WeeklyInfo.Child.WeeklyChest.RunStatus:FontTemplate(nil, 13)
+
+	ChallengesKeystoneFrame:StripTextures()
+	ChallengesKeystoneFrame:SetTemplate("Transparent")
+
+	if ChallengesKeystoneFrame.CloseButton then
+		S:HandleCloseButton(ChallengesKeystoneFrame.CloseButton)
+	end
+	if ChallengesKeystoneFrame.StartButton then
+		S:HandleButton(ChallengesKeystoneFrame.StartButton)
+	end
+
+	if ChallengesKeystoneFrame.InstructionBackground then
+		ChallengesKeystoneFrame.InstructionBackground:SetAlpha(0)
+	end
+
+	local keystoneDecor = {
+		"RuneBG", "SlotBG", "BgBurst2", "PentagonLines",
+		"LargeCircleGlow", "SmallCircleGlow",
+		"RunesLarge", "GlowBurstLarge", "RunesSmall", "GlowBurstSmall",
+		"RuneCircleT", "RuneCircleR", "RuneCircleBR", "RuneCircleBL", "RuneCircleL",
+		"RuneT", "RuneR", "RuneBR", "RuneBL", "RuneL",
+		"LargeRuneGlow", "SmallRuneGlow", "KeystoneSlotGlow",
+	}
+	for _, key in ipairs(keystoneDecor) do
+		if ChallengesKeystoneFrame[key] then
+			ChallengesKeystoneFrame[key]:SetAlpha(0)
+		end
+	end
+
+	if ChallengesKeystoneFrame.KeystoneFrame then
+		ChallengesKeystoneFrame.KeystoneFrame:SetAlpha(0)
+	end
+
+	if ChallengesKeystoneFrame.KeystoneSlot then
+		local slot = ChallengesKeystoneFrame.KeystoneSlot
+		slot:CreateBackdrop("Default")
+		slot:Size(52, 52)
+		if slot.Texture then
+			slot.Texture:SetTexCoord(unpack(E.TexCoords))
+			slot.Texture:SetInside(slot.backdrop)
+			slot.Texture:SetParent(slot.backdrop)
+		end
+	end
+
+	S:HandlePortraitFrame(ChallengesInspectFrame)
+	ChallengesInspectFrame:SetTemplate("Transparent")
+
+	ChallengesInspectFrame:SetMovable(true)
+	ChallengesInspectFrame:RegisterForDrag("LeftButton")
+	ChallengesInspectFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
+	ChallengesInspectFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+
+	if ChallengesInspectFrame.PlayerInfo and ChallengesInspectFrame.PlayerInfo.Child then
+		local child = ChallengesInspectFrame.PlayerInfo.Child
+		local runeKeys = {"RuneBG", "RunesLarge", "RunesSmall", "LargeRuneGlow", "SmallRuneGlow"}
+		for _, key in ipairs(runeKeys) do
+			if child[key] then
+				child[key]:SetAlpha(0)
+			end
+		end
+	end
+
+	local function SkinInspectDungeonIcon(self)
+		if self.isSkinned then return end
+
+		if self.Border then
+			self.Border:Kill()
+		end
+
+		if self.Icon then
+			self.Icon:SetTexCoord(unpack(E.TexCoords))
+			self.Icon:SetInside(self, 2, 2)
+		end
+
+		self:CreateBackdrop("Default")
+		if self.Icon then
+			self.Icon:SetParent(self.Content or self)
+			self.Icon:SetDrawLayer("BACKGROUND", 1)
+		end
+
+		if self.Shadow then
+			self.Shadow:Kill()
+		end
+
+		if self.Content and self.Content.Level then
+			self.Content.Level:FontTemplate(nil, 24, "OUTLINE")
+		end
+
+		self.isSkinned = true
+	end
+
+	local function SkinInspectMemberIcon(self)
+		if self.isSkinned then return end
+
+		if self.Border then
+			self.Border:Kill()
+		end
+
+		if self.Icon then
+			self.Icon:SetTexCoord(unpack(E.TexCoords))
+			self.Icon:SetDrawLayer("ARTWORK")
+			self.Icon:SetInside(self, 2, 2)
+		end
+
+		self:CreateBackdrop("Default")
+		if self.Icon then
+			self.Icon:SetParent(self.backdrop)
+		end
+
+		self.isSkinned = true
+	end
+
+	hooksecurefunc(ChallengesInspectIconDungeonIconMixin, "SetUp", function(self)
+		SkinInspectDungeonIcon(self)
+		if self.Content and self.Content.MembersContainer and self.Content.MembersContainer.Members then
+			for _, member in pairs(self.Content.MembersContainer.Members) do
+				SkinInspectMemberIcon(member)
+			end
+		end
+	end)
+
+	hooksecurefunc(ChallengesInspectMemberIconMixin, "OnLoad", function(self)
+		SkinInspectMemberIcon(self)
+	end)
+end
+
 S:AddCallback("Skin_LFD", LoadSkin)
+S:AddCallbackForAddon("Blizzard_ChallengesUI", "Skin_Challenges", SkinChallenges)

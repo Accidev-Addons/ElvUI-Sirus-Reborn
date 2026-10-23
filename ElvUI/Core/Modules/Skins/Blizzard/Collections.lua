@@ -275,12 +275,12 @@ local function LoadSkin()
 	end
 end
 
-S:AddCallback("Skin_Collections", LoadSkin)
+S:AddCallbackForAddon("Blizzard_PetJournal", "Skin_Collections", LoadSkin)
 
 local function LoadToyBoxSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.toyCollection then return end
 
-	S:HandleSirusTab(CollectionsJournalTab4)
+	S:HandleSirusTab(CollectionsJournalTab3)
 	ToyBoxIconsFrameOverlayFrame:StripTextures()
 	ToyBoxIconsFrame:StripTextures()
 	ToyBoxIconsFrame:CreateBackdrop("Default")
@@ -300,4 +300,4 @@ local function LoadToyBoxSkin()
 	end)
 end
 
-S:AddCallback("Skin_ToyCollection", LoadToyBoxSkin)
+S:AddCallbackForAddon("Blizzard_PetJournal", "Skin_ToyCollection", LoadToyBoxSkin)

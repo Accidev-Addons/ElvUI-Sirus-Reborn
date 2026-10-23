@@ -5,7 +5,7 @@ local format = format
 
 local UnitIsPVP = UnitIsPVP
 local GameTooltip = GameTooltip
-local TogglePVPUIFrame = TogglePVPUIFrame
+local TogglePVPUI = TogglePVPUI
 local GetRatedBattlegroundRankInfo = (C_PvP and C_PvP.GetRatedBattlegroundRankInfo) or GetRatedBattlegroundRankInfo
 
 local PVP_YOUR_RATING = PVP_YOUR_RATING
@@ -99,7 +99,7 @@ function DB:HonorBar_OnEnter()
 end
 
 function DB:HonorBar_OnClick()
-	TogglePVPUIFrame()
+	TogglePVPUI()
 end
 
 function DB:HonorBar_Toggle()

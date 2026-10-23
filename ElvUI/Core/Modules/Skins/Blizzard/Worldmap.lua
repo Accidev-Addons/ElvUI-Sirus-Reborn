@@ -34,7 +34,7 @@ S:AddCallback("Skin_WorldMap", function()
 
 	WorldMapQuestDetailScrollChildFrame:SetScale(1)
 
-	WorldMapQuestDetailScrollFrameTrack:Kill()
+	WorldMapQuestDetailScrollFrameScrollBarTrack:Kill()
 
 	WorldMapQuestRewardScrollFrame:Width(340)
 	WorldMapQuestRewardScrollFrame:Point("LEFT", WorldMapQuestDetailScrollFrame, "RIGHT", 8, 0)
@@ -46,7 +46,7 @@ S:AddCallback("Skin_WorldMap", function()
 
 	WorldMapQuestRewardScrollChildFrame:SetScale(1)
 
-	WorldMapQuestRewardScrollFrameTrack:SetTexture()
+	WorldMapQuestRewardScrollFrameScrollBarTrack:SetTexture()
 
 	WorldMapQuestScrollFrame:Point("TOPLEFT", WorldMapDetailFrame, "TOPRIGHT", 6, -1)
 	WorldMapQuestScrollFrame:CreateBackdrop("Transparent")
@@ -199,7 +199,7 @@ S:AddCallback("Skin_WorldMap", function()
 	WorldMapZoomOutButton:Point("LEFT", WorldMapZoneDropDown, "RIGHT", 0, 3)
 
 	S:HandleCheckBox(WorldMapTrackQuest)
-	S:HandleCheckBox(WorldMapQuestShowObjectives)
+	S:HandleDropDownBox(WorldMapShowDropDown)
 
 	WorldMapFrameAreaLabel:FontTemplate(nil, 50, "OUTLINE")
 	WorldMapFrameAreaLabel:SetShadowOffset(2, -2)
@@ -294,7 +294,6 @@ S:AddCallback("Skin_WorldMap", function()
 
 	hooksecurefunc("WorldMapFrame_SetQuestMapView", QuestSkin)
 	hooksecurefunc("WorldMapFrame_SetFullMapView", LargeSkin)
-	hooksecurefunc("WorldMapFrame_SetMiniMode", SmallSkin)
+	hooksecurefunc("WorldMap_ToggleSizeDown", SmallSkin)
 	hooksecurefunc("ToggleMapFramerate", FixSkin)
-	hooksecurefunc("WorldMapFrame_ToggleAdvanced", FixSkin)
 end)

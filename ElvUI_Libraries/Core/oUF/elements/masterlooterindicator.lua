@@ -101,7 +101,7 @@ local function Enable(self, unit)
 		element.ForceUpdate = ForceUpdate
 
 		self:RegisterEvent('PARTY_LOOT_METHOD_CHANGED', Path, true)
-		self:RegisterEvent('PARTY_MEMBERS_CHANGED', Path, true)
+		self:RegisterEvent('GROUP_ROSTER_UPDATE', Path, true)
 
 		if(element:IsObjectType('Texture') and not element:GetTexture()) then
 			element:SetTexture([[Interface\GroupFrame\UI-Group-MasterLooter]])
@@ -117,7 +117,7 @@ local function Disable(self)
 		element:Hide()
 
 		self:UnregisterEvent('PARTY_LOOT_METHOD_CHANGED', Path)
-		self:UnregisterEvent('PARTY_MEMBERS_CHANGED', Path)
+		self:UnregisterEvent('GROUP_ROSTER_UPDATE', Path)
 	end
 end
 

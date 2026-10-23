@@ -52,7 +52,7 @@ local menuList = {
 }
 
 if E.mylevel >= _G.SHOW_PVP_LEVEL then
-	tinsert(menuList, { text = _G.PLAYER_V_PLAYER, microOffset = 'PVPMicroButton', func = function() _G.TogglePVPUIFrame() end })
+	tinsert(menuList, { text = _G.PLAYER_V_PLAYER, microOffset = 'PVPMicroButton', func = function() _G.TogglePVPUI() end })
 end
 
 if _G.GetNumCompanions('MOUNT') > 0 or _G.GetNumCompanions('CRITTER') > 0 then
@@ -387,12 +387,10 @@ function M:UpdateIcons()
 	local gameTime = _G.GameTimeFrame
 	local mailFrame = _G.MiniMapMailFrame
 	local difficulty = _G.MiniMapInstanceDifficulty
-	local battlefieldFrame = _G.MiniMapBattlefieldFrame
 
 	if not next(IconParents) then
 		if gameTime then M:SaveIconParent(gameTime) end
 		if mailFrame then M:SaveIconParent(mailFrame) end
-		if battlefieldFrame then M:SaveIconParent(battlefieldFrame) end
 		if difficulty then M:SaveIconParent(difficulty) end
 	end
 
@@ -408,7 +406,6 @@ function M:UpdateIcons()
 
 		if gameTime then M:RestoreIcon(gameTime) end
 		if mailFrame then M:RestoreIcon(mailFrame) end
-		if battlefieldFrame then M:RestoreIcon(battlefieldFrame) end
 	else
 		if M.ClusterHolder then
 			E:DisableMover(M.ClusterHolder.mover.name)
@@ -441,22 +438,6 @@ function M:UpdateIcons()
 				M:SetIconParent(mailFrame)
 				M:SetScale(mailFrame, scale)
 			end
-		end
-
-		if battlefieldFrame then
-			if hidden then
-				battlefieldFrame:SetParent(E.HiddenFrame)
-			else
-				local scale, position, xOffset, yOffset = M:GetIconSettings('battlefield')
-				battlefieldFrame:ClearAllPoints()
-				battlefieldFrame:Point(position, Minimap, xOffset, yOffset)
-				M:SetIconParent(battlefieldFrame)
-				M:SetScale(battlefieldFrame, scale)
-			end
-
-			if _G.BattlegroundShine then _G.BattlegroundShine:Hide() end
-			if _G.MiniMapBattlefieldBorder then _G.MiniMapBattlefieldBorder:Hide() end
-			if _G.MiniMapBattlefieldIcon then _G.MiniMapBattlefieldIcon:SetTexCoords() end
 		end
 
 		if difficulty then
@@ -624,11 +605,6 @@ function M:RaiseAddOnButtons()
 end
 
 function M:PLAYER_ENTERING_WORLD()
-	local LFGIconBorder = _G.MiniMapLFGFrameBorder or _G.MiniMapLFGFrame
-	if LFGIconBorder then
-		LFGIconBorder:Hide()
-	end
-
 	M:SetMinimapRotate()
 
 	M:Update_ZoneText()

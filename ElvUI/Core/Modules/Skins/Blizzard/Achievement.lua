@@ -64,7 +64,14 @@ S:AddCallback("Skin_AchievementUI_HybridScrollButton", function()
 	hooksecurefunc("HybridScrollFrame_CreateButtons", function(frame, template)
 		if template == "AchievementCategoryTemplate" then
 			local function UpdateSelection()
-				local selectedCategory = achievementFunctions and achievementFunctions.selectedCategory
+				local tab, functions = AchievementFrame.selectedTab
+				if AchievementFrame.isComparison then
+					functions = tab == 3 and COMPARISON_STAT_FUNCTIONS or COMPARISON_ACHIEVEMENT_FUNCTIONS
+				else
+					functions = (tab == 3 and STAT_FUNCTIONS) or (tab == 2 and GUILD_ACHIEVEMENT_FUNCTIONS) or ACHIEVEMENT_FUNCTIONS
+				end
+
+				local selectedCategory = functions.selectedCategory
 				for _, button in ipairs(frame.buttons) do
 					if button.isSkinned and button.backdrop then
 						button.backdrop:SetBackdropColor(0, 0, 0, 0)
@@ -106,7 +113,7 @@ S:AddCallback("Skin_AchievementUI_HybridScrollButton", function()
 			if scrollBar and not scrollBar.SelectionHooked then
 				scrollBar.SelectionHooked = true
 				hooksecurefunc(scrollBar, "SetValue", function(self, value)
-					C_Timer:After(0.05, UpdateSelection)
+					C_Timer.After(0.05, UpdateSelection)
 				end)
 			end
 		elseif template == "AchievementTemplate" then
@@ -256,14 +263,14 @@ S:AddCallbackForAddon("Blizzard_AchievementUI", "Skin_Blizzard_AchievementUI", f
 
 	hooksecurefunc(AchievementFrameAchievementsContainerScrollBar, "Show", function()
 		AchievementFrameAchievements:SetWidth(500)
-		for _, button in ipairs(AchievementFrameAchievements.buttons) do
+		for _, button in ipairs(AchievementFrameAchievementsContainer.buttons) do
 			button:SetWidth(496)
 		end
 	end)
 
 	hooksecurefunc(AchievementFrameAchievementsContainerScrollBar, "Hide", function()
 		AchievementFrameAchievements:SetWidth(521)
-		for _, button in ipairs(AchievementFrameAchievements.buttons) do
+		for _, button in ipairs(AchievementFrameAchievementsContainer.buttons) do
 			button:SetWidth(517)
 		end
 	end)
@@ -334,12 +341,10 @@ S:AddCallbackForAddon("Blizzard_AchievementUI", "Skin_Blizzard_AchievementUI", f
 		AchievementFrameCategories:HookScript("OnEvent", categoriesContainerScripts)
 	end
 
-	for i = 1, 2 do
+	for i = 1, 3 do
 		local tab = _G["AchievementFrameTab"..i]
-		if tab then
-			S:HandleTab(tab)
-			tab.text:SetPoint("CENTER", 0, 2)
-		end
+		S:HandleTab(tab)
+		tab.text:SetPoint("CENTER", 0, 2)
 	end
 
 	AchievementFrameTab1:Point("BOTTOMLEFT", AchievementFrame, "BOTTOMLEFT", 0, -30)
@@ -539,71 +544,54 @@ end)
 S:AddCallbackForAddon("Blizzard_AchievementUI", "Skin_Sirus_AchievementUI", function()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.achievement then return end
 
-	if AchievementFrameFilterDropDown then
-		AchievementFrameFilterDropDown:ClearAllPoints()
-		AchievementFrameFilterDropDown:Point("TOPLEFT", AchievementFrame, "TOPLEFT", 220, -6)
-	end
+	AchievementFrameFilterDropDown:ClearAllPoints()
+	AchievementFrameFilterDropDown:Point("TOPLEFT", AchievementFrame, "TOPLEFT", 220, -6)
 
-	if AchievementFrame.searchBox then
-		S:HandleEditBox(AchievementFrame.searchBox)
-		if AchievementFrame.searchBox.backdrop then
-			AchievementFrame.searchBox.backdrop:Point("TOPLEFT", AchievementFrame.searchBox, "TOPLEFT", -3, -3)
-			AchievementFrame.searchBox.backdrop:Point("BOTTOMRIGHT", AchievementFrame.searchBox, "BOTTOMRIGHT", 0, 3)
-		end
-		AchievementFrame.searchBox:ClearAllPoints()
-		AchievementFrame.searchBox:Point("TOPLEFT", AchievementFrame, "TOPLEFT", 604, -6)
-		AchievementFrame.searchBox:Size(107, 25)
-	end
+	local searchBox = AchievementFrame.SearchBox
+	S:HandleEditBox(searchBox)
+	searchBox.backdrop:Point("TOPLEFT", searchBox, "TOPLEFT", -3, -3)
+	searchBox.backdrop:Point("BOTTOMRIGHT", searchBox, "BOTTOMRIGHT", 0, 3)
+	searchBox:ClearAllPoints()
+	searchBox:Point("TOPLEFT", AchievementFrame, "TOPLEFT", 604, -6)
+	searchBox:Size(107, 25)
 
-	if AchievementFrame.searchResults then
-		AchievementFrame.searchResults:StripTextures()
-		AchievementFrame.searchResults:CreateBackdrop("Transparent")
-	end
+	local searchResults = AchievementFrame.SearchResults
+	searchResults:StripTextures()
+	searchResults:CreateBackdrop("Transparent")
 
-	if AchievementFrame.searchPreviewContainer then
-		AchievementFrame.searchPreviewContainer:StripTextures()
-		AchievementFrame.searchPreviewContainer:ClearAllPoints()
-		AchievementFrame.searchPreviewContainer:Point("TOPLEFT", AchievementFrame, "TOPRIGHT", 2, -1)
-	end
+	local previewContainer = AchievementFrame.SearchPreviewContainer
+	previewContainer:StripTextures()
+	previewContainer:ClearAllPoints()
+	previewContainer:Point("TOPLEFT", AchievementFrame, "TOPRIGHT", 2, -1)
 
 	local function SkinSearchButton(self)
 		self:StripTextures()
 
-		if self.icon then
-			S:HandleIcon(self.icon)
+		if self.Icon then
+			S:HandleIcon(self.Icon)
 		end
 
 		self:CreateBackdrop("Transparent")
 		self:SetHighlightTexture(E.Media.Textures.Highlight)
 
 		local hl = self:GetHighlightTexture()
-		if hl then
-			hl:SetVertexColor(1, 1, 1, 0.3)
-			hl:Point("TOPLEFT", 1, -1)
-			hl:Point("BOTTOMRIGHT", -1, 1)
-		end
+		hl:SetVertexColor(1, 1, 1, 0.3)
+		hl:Point("TOPLEFT", 1, -1)
+		hl:Point("BOTTOMRIGHT", -1, 1)
 	end
 
-	local previewContainer = AchievementFrame.searchPreviewContainer
-	if previewContainer then
-		for i = 1, 5 do
-			local preview = previewContainer["searchPreview"..i]
-			if preview then SkinSearchButton(preview) end
-		end
-
-		if previewContainer.showAllSearchResults then
-			SkinSearchButton(previewContainer.showAllSearchResults)
-		end
+	for i = 1, 5 do
+		SkinSearchButton(previewContainer["SearchPreview"..i])
 	end
+	SkinSearchButton(previewContainer.ShowAllSearchResults)
+
+	local searchScrollFrame = searchResults.ScrollFrame
 
 	hooksecurefunc("AchievementFrame_UpdateFullSearchResults", function()
 		local numResults = GetNumFilteredAchievements()
 
-		local scrollFrame = AchievementFrame.searchResults and AchievementFrame.searchResults.scrollFrame
-		if not scrollFrame then return end
-
-		local offset = HybridScrollFrame_GetOffset(scrollFrame)
-		local results = scrollFrame.buttons
+		local offset = HybridScrollFrame_GetOffset(searchScrollFrame)
+		local results = searchScrollFrame.buttons
 		local result, index
 
 		for i = 1, #results do
@@ -614,38 +602,32 @@ S:AddCallbackForAddon("Blizzard_AchievementUI", "Skin_Sirus_AchievementUI", func
 				if not result.styled then
 					result:SetNormalTexture("")
 					result:SetPushedTexture("")
-					if result:GetRegions() then result:GetRegions():SetAlpha(0) end
+					result:GetRegions():SetAlpha(0)
 
-					if result.resultType then result.resultType:SetTextColor(1, 1, 1) end
-					if result.path then result.path:SetTextColor(1, 1, 1) end
+					result.ResultType:SetTextColor(1, 1, 1)
+					result.Path:SetTextColor(1, 1, 1)
 
 					result.styled = true
 				end
 
-				if result.icon and result.icon:GetTexCoord() == 0 then
-					result.icon:SetTexCoords()
+				if result.Icon:GetTexCoord() == 0 then
+					result.Icon:SetTexCoords()
 				end
 			end
 		end
 	end)
 
-	local searchScrollFrame = AchievementFrame.searchResults and AchievementFrame.searchResults.scrollFrame
-	if searchScrollFrame and searchScrollFrame.update then
+	if searchScrollFrame.update then
 		hooksecurefunc(searchScrollFrame, "update", function(self)
 			for i = 1, #self.buttons do
 				local result = self.buttons[i]
-				if result.icon and result.icon:GetTexCoord() == 0 then
-					result.icon:SetTexCoords()
+				if result.Icon:GetTexCoord() == 0 then
+					result.Icon:SetTexCoords()
 				end
 			end
 		end)
 	end
 
-	if AchievementFrame.searchResults and AchievementFrame.searchResults.closeButton then
-		S:HandleCloseButton(AchievementFrame.searchResults.closeButton)
-	end
-
-	if AchievementFrameSearchResultsScrollFrameScrollBar then
-		S:HandleSirusScrollBar(AchievementFrameSearchResultsScrollFrameScrollBar)
-	end
+	S:HandleCloseButton(searchResults.CloseButton)
+	S:HandleSirusScrollBar(searchScrollFrame.scrollBar)
 end)

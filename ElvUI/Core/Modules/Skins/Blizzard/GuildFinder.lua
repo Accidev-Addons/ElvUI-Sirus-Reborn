@@ -216,4 +216,4 @@ local function LoadSkin()
 	end)
 end
 
-S:AddCallback("Skin_GuildFinder", LoadSkin)
+S:AddCallbackForAddon("Blizzard_LookingForGuildUI", "Skin_GuildFinder", LoadSkin)

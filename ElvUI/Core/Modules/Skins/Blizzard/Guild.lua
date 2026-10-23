@@ -19,23 +19,15 @@ local function SkinApplicants()
 			button.selectedTex:SetVertexColor(unpack(E.media.rgbvaluecolor))
 			button.selectedTex:SetAlpha(.15)
 			button.selectedTex:SetInside()
-			button.classFrame.ring:Hide()
-			button.classFrame:ClearAllPoints()
-			button.classFrame:SetPoint("TOPLEFT", 10, -10)
-			button.classFrame:SetSize(44, 44)
-			local icon = button.classFrame.class
-			icon:SetTexture([[Interface\TargetingFrame\UI-Classes-Circles]])
-			icon:SetDrawLayer("ARTWORK")
-			icon:SetAlpha(1)
-			icon:SetInside()
-			icon:Show()
-			button.classFrame:EnableDrawLayer("ARTWORK")
-			button.levelFrame.PointsSpentBgGold:Hide()
-			button.levelFrame:SetTemplate("Default")
-			button.levelFrame:ClearAllPoints()
-			button.levelFrame:SetPoint("BOTTOMRIGHT", button.classFrame, "BOTTOMRIGHT", 4, -4)
-			button.levelFrame:SetSize(24, 16)
-			button.levelFrame.level:FontTemplate(nil, 11)
+			button.ring:Hide()
+			local icon = button.class
+			icon:ClearAllPoints()
+			icon:SetPoint("TOPLEFT", 10, -10)
+			icon:SetSize(44, 44)
+			button.PointsSpentBgGold:Hide()
+			button.level:ClearAllPoints()
+			button.level:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 0, 0)
+			button.level:FontTemplate(nil, 11)
 			button.name:FontTemplate(nil, 12)
 			button.name:SetHeight(16)
 			button.name:SetWordWrap(false)
@@ -63,28 +55,29 @@ local function LoadSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.guild then return end
 
 	S:HandlePortraitFrame(GuildFrame)
+	S:HandleInsetFrame(GuildFrameBottomInset)
 
-	GuildXPBar:StripTextures()
-	GuildXPBar.progress:SetTexture(E.media.normTex)
-	E:RegisterStatusBar(GuildXPBar.progress)
-	GuildXPBar.cap:SetTexture(E.media.normTex)
-	E:RegisterStatusBar(GuildXPBar.cap)
-	GuildXPBarArt:StripTextures()
-	GuildXPBar:CreateBackdrop()
-	GuildXPBar.backdrop:SetOutside(GuildXPBarBG)
-
-	for i = 1, 5 do
-		local tab = _G["GuildFrameRightTab"..i]
-		if i == 1 then
-			tab:Point("TOPLEFT", GuildFrame, "TOPRIGHT", -E.Border, -36)
-		end
-		tab:GetRegions():Hide()
-		tab:StyleButton()
-		tab:SetTemplate("Default", true)
-
-		tab.Icon:SetInside()
-		tab.Icon:SetTexCoords()
+	for _, bar in ipairs({GuildXPBar, GuildFactionBar}) do
+		local name = bar:GetName()
+		bar:StripTextures()
+		bar.progress:SetTexture(E.media.normTex)
+		E:RegisterStatusBar(bar.progress)
+		bar.cap:SetTexture(E.media.normTex)
+		E:RegisterStatusBar(bar.cap)
+		bar:CreateBackdrop()
+		bar.backdrop:SetOutside(_G[name.."BG"])
 	end
+
+	S:HandleSirusTabs("GuildFrameTab", 5)
+
+	local lfgTab = GuildFrame.LookingForGuildTab
+	lfgTab:ClearAllPoints()
+	lfgTab:Point("TOPLEFT", GuildFrame, "TOPRIGHT", -E.Border, -36)
+	lfgTab:GetRegions():Hide()
+	lfgTab:StyleButton()
+	lfgTab:SetTemplate("Default", true)
+	lfgTab.Icon:SetInside()
+	lfgTab.Icon:SetTexCoords()
 
 	for i = 1, 3 do
 		local tab = _G["GuildInfoFrameTab"..i]
@@ -134,6 +127,22 @@ local function LoadSkin()
 
 	S:HandleCheckBox(GuildRosterShowOfflineButton)
 
+	GuildNewsFrame:StripTextures()
+	S:HandleSirusScrollBar(GuildNewsContainerScrollBar)
+
+	GuildNewsFiltersFrame:StripTextures()
+	GuildNewsFiltersFrame:SetTemplate("Transparent")
+	S:HandleCloseButton(GuildNewsFiltersFrameCloseButton)
+
+	for i = 1, 7 do
+		S:HandleCheckBox(_G["GuildNewsFilterButton"..i])
+	end
+
+	GuildNewsBossModel:StripTextures()
+	GuildNewsBossModel:SetTemplate("Transparent")
+	GuildNewsBossModelTextFrame:StripTextures()
+	GuildNewsBossModelTextFrame:SetTemplate("Transparent")
+
 	GuildMemberDetailFrame:StripTextures()
 	GuildMemberDetailFrame:SetTemplate("Transparent")
 
@@ -149,9 +158,6 @@ local function LoadSkin()
 	GuildMemberOfficerNoteBackground:SetTemplate("Transparent")
 
 	GuildInfoFrame:StripTextures()
-	if LookingForGuildFrameGuildCardsListScrollFrameScrollBar then
-		S:HandleSirusScrollBar(LookingForGuildFrameGuildCardsListScrollFrameScrollBar)
-	end
 	S:HandleSirusScrollBar(GuildInfoFrameInfoMOTDScrollFrameScrollBar)
 
 	GuildInfoFrameInfo:StripTextures()
@@ -167,18 +173,14 @@ local function LoadSkin()
 
 	GuildTextEditFrame:StripTextures()
 	GuildTextEditFrame:SetTemplate("Transparent")
-	if GuildTextEditFrameCloseButton then
-		S:HandleCloseButton(GuildTextEditFrameCloseButton)
-	end
+	S:HandleCloseButton(GuildTextEditFrameCloseButton2)
 	GuildTextEditContainer:StripTextures()
 	GuildTextEditContainer:SetBackdrop(nil)
 
 	S:HandleSirusScrollBar(GuildTextEditScrollFrameScrollBar)
 
 	S:HandleButton(GuildTextEditFrameAcceptButton)
-	if GuildTextEditFrameCloseButton then
-		S:HandleButton(GuildTextEditFrameCloseButton)
-	end
+	S:HandleButton(GuildTextEditFrameCloseButton)
 
 	GuildLogFrame:StripTextures()
 	GuildLogFrame:SetTemplate("Transparent")
@@ -190,77 +192,6 @@ local function LoadSkin()
 	S:HandleSirusScrollBar(GuildLogScrollFrameScrollBar)
 
 	S:HandleButton(CloseButton2)
-
-	GuildControlPopupFrame:StripTextures()
-	GuildControlPopupFrame:SetTemplate("Transparent")
-	GuildControlPopupFrameCheckboxes:StripTextures()
-
-	S:HandleDropDownBox(GuildControlPopupFrameDropDown, 200)
-	GuildControlPopupFrameDropDown:Height(30)
-
-	S:HandleEditBox(GuildControlPopupFrameEditBox)
-	GuildControlPopupFrameEditBox:Width(100)
-	GuildControlPopupFrameEditBox:Height(25)
-
-	S:HandleButton(GuildControlPopupAcceptButton)
-	S:HandleButton(GuildControlPopupFrameCancelButton)
-
-	GuildControlPopupFrameAddRankButton:ClearAllPoints()
-	GuildControlPopupFrameAddRankButton:Point("RIGHT", GuildControlPopupFrameDropDown,"RIGHT", 10, 5)
-	GuildControlPopupFrameAddRankButton:GetNormalTexture():SetTexture(E.Media.Textures.Plus)
-
-	GuildControlPopupFrameRemoveRankButton:ClearAllPoints()
-	GuildControlPopupFrameRemoveRankButton:Point("RIGHT", GuildControlPopupFrameAddRankButton,"RIGHT", 20, 0)
-	GuildControlPopupFrameRemoveRankButton:GetNormalTexture():SetTexture(E.Media.Textures.Minus)
-
-	local function guildcontrol_OnShow(self)
-		for i = 1,13 do
-			S:HandleCheckBox(_G["GuildControlPopupFrameCheckbox"..i])
-		end
-	end
-	local function for17_OnShow(self)
-		for i = 15,17 do
-			S:HandleCheckBox(_G["GuildControlPopupFrameCheckbox"..i])
-		end
-	end
-
-	local gcontl = GuildControlPopupFrameCheckboxes
-		gcontl:HookScript("OnShow", guildcontrol_OnShow)
-	local gcontl2 = GuildControlPopupFrameCheckbox17
-		gcontl2:HookScript("OnShow", for17_OnShow)
-
-	local function ebWithdrawGold(self)
-		S:HandleEditBox(GuildControlWithdrawGoldEditBox)
-		GuildControlWithdrawGoldEditBox:Width(70)
-		GuildControlWithdrawGoldEditBox:Height(20)
-	end
-
-	GuildControlWithdrawGold:HookScript("OnShow", ebWithdrawGold)
-
-	local function tabandhand(self)
-		for i = 1,6 do
-			_G["GuildBankTabPermissionsTab"..i]:StripTextures()
-			S:HandleTab(_G["GuildBankTabPermissionsTab"..i])
-			_G["GuildBankTabPermissionsTab"..i]:Width(35)
-			_G["GuildBankTabPermissionsTab"..i]:Height(25)
-		end
-		local xoff = -95
-		for i = 1,6 do
-			_G["GuildBankTabPermissionsTab"..i]:ClearAllPoints()
-			_G["GuildBankTabPermissionsTab"..i]:Point("TOPRIGHT", xoff, 17)
-			xoff = xoff + 21
-		end
-		S:HandleCheckBox(GuildControlTabPermissionsViewTab)
-		S:HandleCheckBox(GuildControlTabPermissionsDepositItems)
-		S:HandleCheckBox(GuildControlTabPermissionsUpdateText)
-		GuildControlWithdrawItemsEditBox:StripTextures()
-		S:HandleEditBox(GuildControlWithdrawItemsEditBox)
-		GuildControlWithdrawItemsEditBox:Width(70)
-		GuildControlWithdrawItemsEditBox:Height(20)
-	end
-
-	GuildControlPopupFrameTabPermissions:HookScript("OnShow", tabandhand)
-	GuildControlPopupFrameTabPermissions:StripTextures()
 
 	local function handlelvl(self)
 		GuildLevelFrame:StripTextures()
@@ -286,12 +217,6 @@ local function LoadSkin()
 
 	GuildRecruitmentListGuildButton:StripTextures()
 	S:HandleButton(GuildRecruitmentListGuildButton)
-
-	if GuildRecruitmentQuestButton then S:HandleCheckBox(GuildRecruitmentQuestButton) end
-	if GuildRecruitmentPvPButton then S:HandleCheckBox(GuildRecruitmentPvPButton) end
-	if GuildRecruitmentDungeonButton then S:HandleCheckBox(GuildRecruitmentDungeonButton) end
-	if GuildRecruitmentRPButton then S:HandleCheckBox(GuildRecruitmentRPButton) end
-	if GuildRecruitmentRaidButton then S:HandleCheckBox(GuildRecruitmentRaidButton) end
 
 	S:HandleCheckBox(GuildRecruitmentLevelAnyButton)
 	S:HandleCheckBox(GuildRecruitmentLevelMaxButton)
@@ -360,11 +285,6 @@ local function LoadSkin()
 	GuildRecruitmentCommentEditBox:FontTemplate(nil, 11)
 	S:ApplyElvUIFont(recruitment)
 
-	GuildFactionFrame:ClearAllPoints()
-	GuildFactionFrame:SetPoint("LEFT", GuildFrame.TabardOverlay, "RIGHT", -8, -2)
-	GuildFactionFrame:Size(48, 48)
-	GuildFactionFrame.Icon:SetAllPoints()
-
 	for i = 1,15 do
 		local btn = _G["GuildRosterContainerButton"..i]
 		if btn then
@@ -391,4 +311,45 @@ local function LoadSkin()
 
 end
 
-S:AddCallback("Skin_Guild", LoadSkin)
+local function SkinGuildRanks()
+	for i = 1, GuildControlGetNumRanks() do
+		local rank = _G["GuildControlUIRankOrderFrameRank"..i]
+		if rank and not rank.isSkinned then
+			S:HandleButton(rank.downButton)
+			S:HandleButton(rank.upButton)
+			S:HandleButton(rank.deleteButton)
+			S:HandleEditBox(rank.nameBox)
+			rank.isSkinned = true
+		end
+	end
+end
+
+local function LoadGuildControlSkin()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.guild then return end
+
+	GuildControlUI:StripTextures()
+	GuildControlUI:SetTemplate("Transparent")
+	GuildControlUIHbar:StripTextures()
+	S:HandleCloseButton(GuildControlUICloseButton)
+	S:HandleDropDownBox(GuildControlUINavigationDropDown)
+
+	S:HandleButton(GuildControlUIRankOrderFrameNewButton)
+	S:HandleButton(GuildControlUIRankOrderFrameDupButton)
+	hooksecurefunc("GuildControlUI_RankOrder_Update", SkinGuildRanks)
+	SkinGuildRanks()
+
+	S:HandleDropDownBox(GuildControlUIRankSettingsFrameRankDropDown, 180)
+	for i = 1, NUM_RANK_FLAGS do
+		local checkbox = _G["GuildControlUIRankSettingsFrameCheckbox"..i]
+		if checkbox then S:HandleCheckBox(checkbox) end
+	end
+	S:HandleEditBox(GuildControlUIRankSettingsFrameGoldBox)
+
+	S:HandleDropDownBox(GuildControlUIRankBankFrameRankDropDown, 180)
+	GuildControlUIRankBankFrameInset:StripTextures()
+	GuildControlUIRankBankFrameInsetScrollFrame:StripTextures()
+	S:HandleSirusScrollBar(GuildControlUIRankBankFrameInsetScrollFrameScrollBar)
+end
+
+S:AddCallbackForAddon("Blizzard_GuildUI", "Skin_Guild", LoadSkin)
+S:AddCallbackForAddon("Blizzard_GuildControlUI", "Skin_GuildControl", LoadGuildControlSkin)

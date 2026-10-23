@@ -265,7 +265,8 @@ function NP:Configure_CastBar(frame, configuring)
 	castBar:SetPoint("TOP", frame.Health, "BOTTOM", NP:Pixel(db.xOffset), NP:Pixel(db.yOffset))
 
 	if db.showIcon then
-		castBar.Icon:ClearAndSetPoint(db.iconPosition == "RIGHT" and "BOTTOMLEFT" or "BOTTOMRIGHT", castBar, db.iconPosition == "RIGHT" and "BOTTOMRIGHT" or "BOTTOMLEFT", NP:Pixel(db.iconOffsetX), NP:Pixel(db.iconOffsetY))
+		castBar.Icon:ClearAllPoints()
+		castBar.Icon:SetPoint(db.iconPosition == "RIGHT" and "BOTTOMLEFT" or "BOTTOMRIGHT", castBar, db.iconPosition == "RIGHT" and "BOTTOMRIGHT" or "BOTTOMLEFT", NP:Pixel(db.iconOffsetX), NP:Pixel(db.iconOffsetY))
 		castBar.Icon:Show()
 	else
 		castBar.Icon:Hide()

@@ -16,6 +16,8 @@ local GetInstanceIDByMapID = _G.C_EncounterJournal and _G.C_EncounterJournal.Get
 local RequestRaidInfo = RequestRaidInfo
 local SecondsToTime = SecondsToTime
 local IsInInstance = IsInInstance
+local GetNumWorldPVPAreas = GetNumWorldPVPAreas
+local GetWorldPVPAreaInfo = GetWorldPVPAreaInfo
 
 local QUEUE_TIME_UNAVAILABLE = QUEUE_TIME_UNAVAILABLE
 local TIMEMANAGER_TOOLTIP_LOCALTIME = TIMEMANAGER_TOOLTIP_LOCALTIME
@@ -140,20 +142,26 @@ local function OnEnter()
 		collectedInstanceImages = true
 	end
 
-	local startTime = _G.GetWintergraspWaitTime()
 	local _, instanceType = IsInInstance()
+	local addedLine
+	for i = 1, GetNumWorldPVPAreas() do
+		local _, localizedName, isActive, canQueue, startTime = GetWorldPVPAreaInfo(i)
+		if canQueue and localizedName and localizedName ~= '' then
+			if isActive then
+				startTime = WINTERGRASP_IN_PROGRESS
+			elseif instanceType ~= "none" or not startTime then
+				startTime = QUEUE_TIME_UNAVAILABLE
+			else
+				startTime = ToTime(startTime)
+			end
 
-	if startTime == nil then
-		startTime = WINTERGRASP_IN_PROGRESS
-	elseif instanceType ~= "none" then
-		startTime = QUEUE_TIME_UNAVAILABLE
-	elseif startTime ~= 0 then
-		startTime = ToTime(startTime)
-	end
+			if not addedLine then
+				DT.tooltip:AddLine(VOICE_CHAT_BATTLEGROUND)
+				addedLine = true
+			end
 
-	if _G.WintergraspTimer.canQueue and startTime ~= 0 then
-		DT.tooltip:AddLine(VOICE_CHAT_BATTLEGROUND)
-		DT.tooltip:AddDoubleLine(format(formatBattleGroundInfo, L["Wintergrasp"]), startTime, 1, 1, 1, lockoutColorNormal.r, lockoutColorNormal.g, lockoutColorNormal.b)
+			DT.tooltip:AddDoubleLine(format(formatBattleGroundInfo, localizedName), startTime, 1, 1, 1, lockoutColorNormal.r, lockoutColorNormal.g, lockoutColorNormal.b)
+		end
 	end
 
 	wipe(lockedInstances.raids)

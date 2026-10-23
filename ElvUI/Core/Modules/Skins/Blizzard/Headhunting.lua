@@ -26,8 +26,6 @@ local function LoadSkin()
 	if HeadHuntingFrame.Container.HomeTab:GetFontString() then
 		HeadHuntingFrame.Container.HomeTab:GetFontString():FontTemplate()
 	end
-
-	S:HandleSirusTabs("HeadHuntingFrameTab", 4)
 		S:HandleButton(HeadHuntingFrame.Container.AllTargetsTab, true)
 		S:HandleButton(HeadHuntingFrame.Container.YouTargetsTab, true)
 	end

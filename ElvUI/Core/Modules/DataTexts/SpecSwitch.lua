@@ -25,7 +25,7 @@ local db, synced
 local activeGroup, maxGroups, selectedIndex = 1, 1, 1
 
 local function GetGroupInfo(index)
-	local name, texture = C_Talent.GetTalentGroupSettings(index)
+	local name, texture = C_Talent.GetTalentGroupNote(index)
 
 	if not name or name == '' or not texture then
 		local tabIndex = E.IsSpecInfoReady() and C_Talent.GetPrimaryTabIndexForTalentGroup(index)
@@ -46,8 +46,7 @@ local function GetGroupInfo(index)
 end
 
 local function SwitchEquipmentSet()
-	local cache = C_Talent.GetSpecInfoCache()
-	local setName = C_Talent.GetTalentGroupSettings((cache and cache.activeTalentGroup) or activeGroup)
+	local setName = C_Talent.GetTalentGroupNote(C_Talent.GetActiveTalentGroup() or activeGroup)
 	if not setName or setName == '' then return end
 
 	for i = 1, GetNumEquipmentSets() do
@@ -110,8 +109,7 @@ local function OnEvent(self)
 	maxGroups = ready and C_Talent.GetNumTalentGroups() or 1
 	if maxGroups < 1 then maxGroups = 1 end
 
-	local cache = ready and C_Talent.GetSpecInfoCache()
-	activeGroup = (cache and cache.activeTalentGroup) or (ready and C_Talent.GetActiveTalentGroup()) or 1
+	activeGroup = (ready and C_Talent.GetActiveTalentGroup()) or 1
 
 	if not synced and ready and C_Talent.IsSpecInfoLoaded() then
 		synced = true

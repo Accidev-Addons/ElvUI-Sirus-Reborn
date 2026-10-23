@@ -273,7 +273,7 @@ function E:Delay(delay, func, ...)
 	end
 
 	local args = {...}
-	C_Timer:After(delay < 0.01 and 0.01 or delay, function() func(unpack(args)) end)
+	C_Timer.After(delay < 0.01 and 0.01 or delay, function() func(unpack(args)) end)
 
 	return true
 end

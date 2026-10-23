@@ -115,7 +115,7 @@ local function SkinBNToast()
 		S:HandleCloseButton(_G.BNToastFrameCloseButton)
 	end
 
-	for _, name in next, { 'BNToastFrameTopLine', 'BNToastFrameBottomLine', 'BNToastFrameDoubleLine' } do
+	for _, name in next, { 'BNToastFrameTopLine', 'BNToastFrameMiddleLine', 'BNToastFrameBottomLine', 'BNToastFrameDoubleLine' } do
 		local fontString = _G[name]
 		if fontString then
 			fontString:FontTemplate()

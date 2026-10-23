@@ -25,7 +25,6 @@ The following options are listed by priority. The first check that returns true 
 
 .colorTapping      - Use `self.colors.tapping` to color the bar if the unit isn't tapped by the player (boolean)
 .colorDisconnected - Use `self.colors.disconnected` to color the bar if the unit is offline (boolean)
-.colorHappiness    - Use `self.colors.happiness` to color the bar if the unit is pet based on pet happiness (boolean)
 .colorPower        - Use `self.colors.power[token]` to color the bar based on the unit's power type. This method will
                      fall-back to `:GetAlternativeColor()` if it can't find a color matching the token. If this function
                      isn't defined, then it will attempt to color based upon the alternative power colors returned by
@@ -87,7 +86,6 @@ local oUF = ns.oUF
 
 local unpack = unpack
 
-local GetPetHappiness = GetPetHappiness
 local UnitClass = UnitClass
 local UnitIsConnected = UnitIsConnected
 local UnitIsPlayer = UnitIsPlayer
@@ -112,8 +110,6 @@ local function UpdateColor(self, event, unit)
 		t = self.colors.tapped
 	elseif(element.colorThreat and not UnitPlayerControlled(unit) and UnitThreatSituation('player', unit)) then
 		t =  self.colors.threat[UnitThreatSituation('player', unit)]
-	elseif(element.colorHappiness and UnitIsUnit(unit, 'pet') and GetPetHappiness()) then
-		t = self.colors.happiness[GetPetHappiness()]
 	elseif(element.colorPower) then
 		t = self.colors.power[ptoken or ptype]
 		if(not t) then
@@ -280,36 +276,6 @@ local function SetColorThreat(element, state)
 	end
 end
 
---[[ Power:SetColorHappiness(state)
-Used to toggle coloring by the unit's happiness status.
-
-* self  - the Power element
-* state - the desired state (boolean)
---]]
-local function SetColorHappiness(element, state)
-	if(element.colorHappiness ~= state) then
-		element.colorHappiness = state
-		if(element.colorHappiness) then
-			element.__owner:RegisterEvent('UNIT_HAPPINESS', ColorPath)
-		else
-			element.__owner:UnregisterEvent('UNIT_HAPPINESS', ColorPath)
-		end
-	end
-end
-
-
-local function onPowerUpdate(self)
-	if(self.disconnected) then return end
-
-	local unit = self.__owner.unit
-	local power = UnitPower(unit)
-
-	if(power ~= self.power) then
-		self.power = power
-
-		return Path(self.__owner, 'OnPowerUpdate', unit)
-	end
-end
 
 --[[ Power:SetFrequentUpdates(state)
 Used to toggle frequent updates.
@@ -322,22 +288,12 @@ local function SetFrequentUpdates(element, state)
 
 	if(element.frequentUpdates ~= state) then
 		element.frequentUpdates = state
-		if(element.frequentUpdates and not element:GetScript('OnUpdate')) then
-			element:SetScript('OnUpdate', onPowerUpdate)
-
-			element.__owner:UnregisterEvent('UNIT_MANA', Path)
-			element.__owner:UnregisterEvent('UNIT_RAGE', Path)
-			element.__owner:UnregisterEvent('UNIT_FOCUS', Path)
-			element.__owner:UnregisterEvent('UNIT_ENERGY', Path)
-			element.__owner:UnregisterEvent('UNIT_RUNIC_POWER', Path)
-		elseif(not element.frequentUpdates and element:GetScript('OnUpdate')) then
-			element:SetScript('OnUpdate', nil)
-
-			element.__owner:RegisterEvent('UNIT_MANA', Path)
-			element.__owner:RegisterEvent('UNIT_RAGE', Path)
-			element.__owner:RegisterEvent('UNIT_FOCUS', Path)
-			element.__owner:RegisterEvent('UNIT_ENERGY', Path)
-			element.__owner:RegisterEvent('UNIT_RUNIC_POWER', Path)
+		if(element.frequentUpdates) then
+			element.__owner:UnregisterEvent('UNIT_POWER', Path)
+			element.__owner:RegisterEvent('UNIT_POWER_FREQUENT', Path)
+		else
+			element.__owner:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
+			element.__owner:RegisterEvent('UNIT_POWER', Path)
 		end
 	end
 end
@@ -350,7 +306,6 @@ local function Enable(self, unit)
 		element.SetColorDisconnected = SetColorDisconnected
 		element.SetColorTapping = SetColorTapping
 		element.SetColorThreat = SetColorThreat
-		element.SetColorHappiness = SetColorHappiness
 		element.SetFrequentUpdates = SetFrequentUpdates
 
 		if(element.colorDisconnected) then
@@ -365,25 +320,13 @@ local function Enable(self, unit)
 			self:RegisterEvent('UNIT_THREAT_LIST_UPDATE', ColorPath)
 		end
 
-		if(element.colorHappiness) then
-			self:RegisterEvent('UNIT_HAPPINESS', ColorPath)
-		end
-
-		if(element.frequentUpdates and (unit == 'player' or unit == 'pet')) then
-			element:SetScript('OnUpdate', onPowerUpdate)
+		if(element.frequentUpdates) then
+			self:RegisterEvent('UNIT_POWER_FREQUENT', Path)
 		else
-			self:RegisterEvent('UNIT_MANA', Path)
-			self:RegisterEvent('UNIT_RAGE', Path)
-			self:RegisterEvent('UNIT_FOCUS', Path)
-			self:RegisterEvent('UNIT_ENERGY', Path)
-			self:RegisterEvent('UNIT_RUNIC_POWER', Path)
+			self:RegisterEvent('UNIT_POWER', Path)
 		end
 
-		self:RegisterEvent('UNIT_MAXMANA', Path)
-		self:RegisterEvent('UNIT_MAXRAGE', Path)
-		self:RegisterEvent('UNIT_MAXFOCUS', Path)
-		self:RegisterEvent('UNIT_MAXENERGY', Path)
-		self:RegisterEvent('UNIT_MAXRUNIC_POWER', Path)
+		self:RegisterEvent('UNIT_MAXPOWER', Path)
 		self:RegisterEvent('UNIT_DISPLAYPOWER', Path)
 
 		if(element:IsObjectType('StatusBar')) then
@@ -402,27 +345,14 @@ local function Disable(self)
 	if(element) then
 		element:Hide()
 
-		if(element:GetScript('OnUpdate')) then
-			element:SetScript('OnUpdate', nil)
-		else
-			self:UnregisterEvent('UNIT_MANA', Path)
-			self:UnregisterEvent('UNIT_RAGE', Path)
-			self:UnregisterEvent('UNIT_FOCUS', Path)
-			self:UnregisterEvent('UNIT_ENERGY', Path)
-			self:UnregisterEvent('UNIT_RUNIC_POWER', Path)
-		end
-
-		self:UnregisterEvent('UNIT_MAXMANA', Path)
-		self:UnregisterEvent('UNIT_MAXRAGE', Path)
-		self:UnregisterEvent('UNIT_MAXFOCUS', Path)
-		self:UnregisterEvent('UNIT_MAXENERGY', Path)
-		self:UnregisterEvent('UNIT_MAXRUNIC_POWER', Path)
+		self:UnregisterEvent('UNIT_POWER_FREQUENT', Path)
+		self:UnregisterEvent('UNIT_POWER', Path)
+		self:UnregisterEvent('UNIT_MAXPOWER', Path)
 		self:UnregisterEvent('UNIT_DISPLAYPOWER', Path)
 
 		self:UnregisterEvent('UNIT_CONNECTION', ColorPath)
 		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE', ColorPath)
 		self:UnregisterEvent('UNIT_FACTION', ColorPath)
-		self:UnregisterEvent('UNIT_HAPPINESS', ColorPath)
 	end
 end
 

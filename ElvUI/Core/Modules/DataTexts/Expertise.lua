@@ -7,7 +7,6 @@ local strjoin = strjoin
 local GetExpertise = GetExpertise
 local GetCombatRating = GetCombatRating
 local GetCombatRatingBonus = GetCombatRatingBonus
-local GetExpertisePercent = GetExpertisePercent
 local OffhandHasWeapon = OffhandHasWeapon
 
 local CR_EXPERTISE_TOOLTIP = CR_EXPERTISE_TOOLTIP
@@ -22,8 +21,8 @@ local expertise, offhandExpertise = 0, 0
 local IsDualWielding = OffhandHasWeapon
 
 local function OnEvent(self)
-	expertise, offhandExpertise = GetExpertise()
-	expertisePercent, offhandExpertisePercent = GetExpertisePercent()
+	expertisePercent, offhandExpertisePercent = GetExpertise()
+	expertise, offhandExpertise = expertisePercent, offhandExpertisePercent
 	expertiseRating, expertiseBonusRating = GetCombatRating(CR_EXPERTISE), GetCombatRatingBonus(CR_EXPERTISE)
 
 	if IsDualWielding() then

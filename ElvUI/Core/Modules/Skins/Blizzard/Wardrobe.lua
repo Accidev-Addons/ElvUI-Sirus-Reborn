@@ -152,8 +152,6 @@ local function LoadSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.wardrobe then return end
 
 	local frame = _G.WardrobeFrame
-	if not frame then return end
-
 	S:HandleSirusFrame(frame)
 
 	if frame.TitleText then
@@ -222,4 +220,4 @@ local function LoadSkin()
 	SkinOutfitEditFrame()
 end
 
-S:AddCallback("Skin_Wardrobe", LoadSkin)
+S:AddCallbackForAddon("Blizzard_PetJournal", "Skin_Wardrobe", LoadSkin)

@@ -40,7 +40,7 @@ local GetNumLootItems = GetNumLootItems
 local IsFishingLoot = IsFishingLoot
 local IsModifiedClick = IsModifiedClick
 local LootSlot = LootSlot
-local LootSlotIsItem = LootSlotIsItem
+local GetLootSlotType = GetLootSlotType
 local ResetCursor = ResetCursor
 local ToggleDropDownMenu = ToggleDropDownMenu
 local UIParent = UIParent
@@ -57,7 +57,7 @@ local iconSize, lootFrame, lootFrameHolder = 30
 
 local function SlotEnter(slot)
 	local id = slot:GetID()
-	if LootSlotIsItem(id) then
+	if GetLootSlotType(id) == LOOT_SLOT_ITEM then
 		GameTooltip:SetOwner(slot, 'ANCHOR_RIGHT')
 		GameTooltip:SetLootItem(id)
 		CursorUpdate(slot)

@@ -28,7 +28,7 @@ S:AddCallbackForAddon("Blizzard_ItemSocketingUI", "Skin_Blizzard_ItemSocketingUI
 
 	ItemSocketingFramePortrait:Kill()
 
-	S:HandleCloseButton(ItemSocketingCloseButton, ItemSocketingFrame.backdrop)
+	S:HandleCloseButton(ItemSocketingFrame.CloseButton, ItemSocketingFrame.backdrop)
 
 	ItemSocketingScrollFrame:Height(269)
 	ItemSocketingScrollFrame:Point("TOPLEFT", 20, -77)

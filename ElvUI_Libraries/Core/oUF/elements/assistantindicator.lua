@@ -26,8 +26,8 @@ local _, ns = ...
 local oUF = ns.oUF
 
 local UnitInRaid = UnitInRaid
-local UnitIsPartyLeader = UnitIsPartyLeader
-local UnitIsRaidOfficer = UnitIsRaidOfficer
+local UnitIsGroupAssistant = UnitIsGroupAssistant
+local UnitIsGroupLeader = UnitIsGroupLeader
 
 local function Update(self, event)
 	local element = self.AssistantIndicator
@@ -42,7 +42,7 @@ local function Update(self, event)
 	end
 
 	local unit = self.unit
-	local isAssistant = UnitInRaid(unit) and UnitIsRaidOfficer(unit) and not UnitIsPartyLeader(unit)
+	local isAssistant = UnitInRaid(unit) and UnitIsGroupAssistant(unit) and not UnitIsGroupLeader(unit)
 	if(isAssistant) then
 		element:Show()
 	else
@@ -81,7 +81,7 @@ local function Enable(self)
 		element.__owner = self
 		element.ForceUpdate = ForceUpdate
 
-		self:RegisterEvent('PARTY_MEMBERS_CHANGED', Path, true)
+		self:RegisterEvent('GROUP_ROSTER_UPDATE', Path, true)
 
 		if(element:IsObjectType('Texture') and not element:GetTexture()) then
 			element:SetTexture([[Interface\GroupFrame\UI-Group-AssistantIcon]])
@@ -96,7 +96,7 @@ local function Disable(self)
 	if(element) then
 		element:Hide()
 
-		self:UnregisterEvent('PARTY_MEMBERS_CHANGED', Path)
+		self:UnregisterEvent('GROUP_ROSTER_UPDATE', Path)
 	end
 end
 

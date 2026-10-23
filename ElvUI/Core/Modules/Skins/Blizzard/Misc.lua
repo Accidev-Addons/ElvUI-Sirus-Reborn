@@ -80,7 +80,6 @@ S:AddCallback('Skin_Misc', function()
 		local itemFrameNormal = _G['StaticPopup'..i..'ItemFrameNormalTexture']
 		local itemFrameName = _G['StaticPopup'..i..'ItemFrameNameFrame']
 		local closeButton = _G['StaticPopup'..i..'CloseButton']
-		local wideBox = _G['StaticPopup'..i..'WideEditBox']
 
 		staticPopup:SetTemplate('Transparent')
 
@@ -99,21 +98,8 @@ S:AddCallback('Skin_Misc', function()
 				box.backdrop:SetPoint("BOTTOMRIGHT", box, "BOTTOMRIGHT", 4, 0)
 			end
 		end
-		local moneyBg = _G['StaticPopup'..i..'MoneyBg']
-		if moneyBg then moneyBg:Kill() end
-		local moneyInset = _G['StaticPopup'..i..'MoneyInputFrameInset']
-		if moneyInset then moneyInset:StripTextures() end
 		local moneyInputFrame = _G['StaticPopup'..i..'MoneyInputFrame']
 		if moneyInputFrame then moneyInputFrame:StripTextures() end
-
-		for j = 1, itemFrameBox:GetNumRegions() do
-			local region = select(j, itemFrameBox:GetRegions())
-			if region and region:IsObjectType('Texture') then
-				if region:GetTexture() == [[Interface\ChatFrame\UI-ChatInputBorder-Left]] or region:GetTexture() == [[Interface\ChatFrame\UI-ChatInputBorder-Right]] then
-					region:Kill()
-				end
-			end
-		end
 
 		closeButton:StripTextures()
 		S:HandleCloseButton(closeButton, staticPopup)
@@ -182,24 +168,10 @@ S:AddCallback('Skin_Misc', function()
 		itemFrameNormal:SetAlpha(0)
 		itemFrameName:Kill()
 
-		select(8, wideBox:GetRegions()):Hide()
-		S:HandleEditBox(wideBox)
-
 		for j = 1, 3 do
 			S:HandleButton(_G['StaticPopup'..i..'Button'..j])
 		end
 	end
-
-	hooksecurefunc('StaticPopup_Resize', function(dialog)
-		local info = _G.StaticPopupDialogs[dialog.which]
-		if info and info.hasEditBox and info.hasWideEditBox then
-			local wideBox = _G[dialog:GetName()..'WideEditBox']
-			if not info.hasMultiLine then wideBox:SetHeight(24) end
-			wideBox.backdrop:ClearAllPoints()
-			wideBox.backdrop:SetPoint('TOPLEFT', wideBox, 'TOPLEFT', -4, 0)
-			wideBox.backdrop:SetPoint('BOTTOMRIGHT', wideBox, 'BOTTOMRIGHT', 4, 0)
-		end
-	end)
 
 	S:SkinDropDownMenu('DropDownList')
 
@@ -209,7 +181,6 @@ S:AddCallback('Skin_Misc', function()
 
 	_G.BasicScriptErrors:SetScale(E.global.general.UIScale)
 	_G.BasicScriptErrors:SetTemplate('Transparent')
-	S:HandleButton(_G.BasicScriptErrorsButton)
 
 	local ReadyCheckFrame = _G.ReadyCheckFrame
 	ReadyCheckFrame:EnableMouse(true)
@@ -592,8 +563,6 @@ S:AddCallback("Skin_ItemBrowser", function()
 		hooksecurefunc(ItemBrowser, "UpdateResultList", SkinList)
 	end
 	SkinList()
-
-	S:HandleSirusTabs("ItemBrowserTab", 4)
 
 	S:ApplyElvUIFont(ItemBrowser)
 	ItemBrowser:HookScript("OnShow", function(self)

@@ -7,8 +7,8 @@ local CreateFrame = CreateFrame
 
 local GetRaidRosterInfo = GetRaidRosterInfo
 local InCombatLockdown = InCombatLockdown
-local IsPartyLeader = IsPartyLeader
-local IsRaidOfficer = IsRaidOfficer
+local UnitIsGroupLeader = UnitIsGroupLeader
+local UnitIsGroupAssistant = UnitIsGroupAssistant
 local UIDropDownMenu_Refresh = UIDropDownMenu_Refresh
 local UnitIsSameServer = UnitIsSameServer
 local issecurevariable = issecurevariable
@@ -148,7 +148,7 @@ hooksecurefunc('UnitPopup_HideButtons', function()
         end
     end
 
-    if dropdownMenu.which ~= 'RAID' or not (IsPartyLeader() or IsRaidOfficer()) then return end
+    if dropdownMenu.which ~= 'RAID' or not (UnitIsGroupLeader('player') or UnitIsGroupAssistant('player')) then return end
 
     for index, value in ipairs(_G.UnitPopupMenus[dropdownMenu.which]) do
         if value == 'RAID_MAINTANK' or value == 'RAID_MAINASSIST' then

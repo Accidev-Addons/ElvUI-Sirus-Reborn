@@ -184,6 +184,21 @@ G.unitframe = {
 			},
 			petSpells = {},
 		},
+		MONK = {
+			enemySpells = {
+				[115078] = true,
+			},
+			longEnemySpells = {
+				[115546] = true,
+			},
+			friendlySpells = {
+				[115450] = true,
+			},
+			resSpells = {
+				[115178] = true,
+			},
+			petSpells = {},
+		},
 		WARLOCK = {
 			enemySpells = {
 				[5782] = true, -- Fear (20 yards)

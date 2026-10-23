@@ -48,7 +48,7 @@ local SetWatchedFactionIndex = SetWatchedFactionIndex
 local IsInGroup = IsInGroup
 local IsInRaid = IsInRaid
 local GetNumGroupMembers = GetNumGroupMembers
-local IsRaidLeader, IsPartyLeader = IsRaidLeader, IsPartyLeader
+local UnitIsGroupLeader = UnitIsGroupLeader
 
 local ERR_GUILD_NOT_ENOUGH_MONEY = ERR_GUILD_NOT_ENOUGH_MONEY
 local ERR_NOT_ENOUGH_MONEY = ERR_NOT_ENOUGH_MONEY
@@ -78,7 +78,7 @@ function M:ZoneTextToggle()
 end
 
 do
-	function M:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, sourceGUID, _, _, destGUID, destName, _, _, _, _, spellID, spellName)
+	function M:COMBAT_LOG_EVENT_UNFILTERED(_, _, event, _, sourceGUID, _, _, _, destGUID, destName, _, _, _, _, _, spellID, spellName)
 		local inGroup = IsInGroup()
 		if not inGroup then return end
 
@@ -208,7 +208,7 @@ function M:DisbandRaidGroup()
 				end
 			end
 		end
-	elseif not myIndex and (IsInRaid() and IsRaidLeader() or IsPartyLeader()) then
+	elseif not myIndex and UnitIsGroupLeader('player') then
 		for i = MAX_PARTY_MEMBERS, 1, -1 do
 			local name = UnitName('party'..i)
 			if name then

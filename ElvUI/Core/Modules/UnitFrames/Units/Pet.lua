@@ -21,9 +21,6 @@ function UF:Construct_PetFrame(frame)
 	frame.HealCommBar = self:Construct_HealComm(frame)
 	frame.AuraWatch = self:Construct_AuraWatch(frame)
 	frame.AuraBars = self:Construct_AuraBarHeader(frame)
-	if E.myclass == "HUNTER" then
-		frame.HappinessIndicator = self:Construct_Happiness(frame)
-	end
 	frame.InfoPanel = self:Construct_InfoPanel(frame)
 	frame.MouseGlow = self:Construct_MouseGlow(frame)
 	frame.TargetGlow = self:Construct_TargetGlow(frame)
@@ -62,9 +59,6 @@ function UF:Update_PetFrame(frame, db)
 		frame.USE_INFO_PANEL = not frame.USE_MINI_POWERBAR and not frame.USE_POWERBAR_OFFSET and db.infoPanel.enable
 		frame.INFO_PANEL_HEIGHT = frame.USE_INFO_PANEL and db.infoPanel.height or 0
 
-		frame.HAPPINESS_SHOWN = (db.happiness and db.happiness.enable) and frame.HappinessIndicator and frame.HappinessIndicator:IsShown()
-		frame.HAPPINESS_WIDTH = 0
-
 		frame.BOTTOM_OFFSET = UF:GetHealthBottomOffset(frame)
 
 		frame.VARIABLES_SET = true
@@ -76,9 +70,6 @@ function UF:Update_PetFrame(frame, db)
 	frame:Size(frame.UNIT_WIDTH, frame.UNIT_HEIGHT)
 	_G[frame:GetName().."Mover"]:Size(frame:GetSize())
 
-	if E.myclass == "HUNTER" then
-		UF:Configure_Happiness(frame)
-	end
 
 	UF:Configure_InfoPanel(frame)
 

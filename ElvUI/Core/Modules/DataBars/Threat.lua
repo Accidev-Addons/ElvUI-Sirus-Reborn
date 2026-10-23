@@ -107,8 +107,7 @@ function DB:ThreatBar_Toggle()
 
 		DB:RegisterEvent('PLAYER_TARGET_CHANGED', 'ThreatBar_Update')
 		DB:RegisterEvent('UNIT_THREAT_LIST_UPDATE', 'ThreatBar_Update')
-        DB:RegisterEvent('RAID_ROSTER_UPDATE', 'ThreatBar_Update')
-        DB:RegisterEvent('PARTY_MEMBERS_CHANGED', 'ThreatBar_Update')
+        DB:RegisterEvent('GROUP_ROSTER_UPDATE', 'ThreatBar_Update')
 		DB:RegisterEvent('UNIT_FLAGS', 'ThreatBar_Update')
 		DB:RegisterEvent('UNIT_PET', 'ThreatBar_Update')
 
@@ -120,8 +119,7 @@ function DB:ThreatBar_Toggle()
 
 		DB:UnregisterEvent('PLAYER_TARGET_CHANGED')
 		DB:UnregisterEvent('UNIT_THREAT_LIST_UPDATE')
-        DB:UnregisterEvent('RAID_ROSTER_UPDATE')
-        DB:UnregisterEvent('PARTY_MEMBERS_CHANGED')
+        DB:UnregisterEvent('GROUP_ROSTER_UPDATE')
 		DB:UnregisterEvent('UNIT_FLAGS')
 		DB:UnregisterEvent('UNIT_PET')
 	end

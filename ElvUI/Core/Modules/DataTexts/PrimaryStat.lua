@@ -23,7 +23,8 @@ local classStat = {
 	WARLOCK = 4,
 	PRIEST = 4,
 	DRUID = { 4, 2, 4 },
-	SHAMAN = { 4, 2, 4 }
+	SHAMAN = { 4, 2, 4 },
+	MONK = { 2, 4, 2 }
 }
 
 local function OnEvent(self)

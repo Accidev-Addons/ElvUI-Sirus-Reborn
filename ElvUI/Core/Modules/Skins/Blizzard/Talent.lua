@@ -3,7 +3,7 @@ local S = E:GetModule("Skins")
 
 local C_Talent = C_Talent
 local _G = _G
-local unpack, pairs, ipairs, select = unpack, pairs, ipairs, select
+local unpack, ipairs, select = unpack, ipairs, select
 local hooksecurefunc = hooksecurefunc
 local GetGlyphSocketInfo = GetGlyphSocketInfo
 local GetTalentTabInfo = GetTalentTabInfo
@@ -135,7 +135,9 @@ function S:LayoutGlyphTreeArt(frame, background, boxW, boxH)
 end
 
 function S:HandleGlyphSocket(glyph, globes)
-	glyph.background:SetTexture(E.ClearTexture)
+	if glyph.background then
+		glyph.background:SetTexture(E.ClearTexture)
+	end
 	glyph.ring:SetTexture(E.ClearTexture)
 
 	glyph.Shadow = glyph:CreateTexture(nil, "BACKGROUND", nil, -2)
@@ -563,87 +565,6 @@ local function LoadSkin()
 		slot.NameFrame:SetAlpha(0)
 	end
 
-	local glyphGlobes = {}
-
-	local function UpdateGlyphSocket(sock)
-		if not sock.Globe then return end
-
-		local talentGroup = _G.PlayerTalentFrame and _G.PlayerTalentFrame.talentGroup
-		local enabled, glyphType, glyphSpell = GetGlyphSocketInfo(sock:GetID(), talentGroup)
-		if not glyphType then return end
-
-		S:UpdateGlyphSocket(sock, glyphType == 1, (enabled and glyphSpell) and true or false)
-	end
-
-	local function UpdateGlyphBackground()
-		local GlyphFrame = _G.GlyphFrame
-		if not (GlyphFrame and GlyphFrame.treeArtTop) then return end
-
-		local talentGroup = _G.PlayerTalentFrame and _G.PlayerTalentFrame.talentGroup
-		local bestPoints, bestBackground = -1, nil
-		for i = 1, 3 do
-			local _, _, points, background = GetTalentTabInfo(i, nil, nil, talentGroup)
-			if (points or 0) > bestPoints then bestPoints, bestBackground = points or 0, background end
-		end
-
-		S:LayoutGlyphTreeArt(GlyphFrame, bestBackground, GlyphFrame:GetWidth(), GlyphFrame:GetHeight())
-	end
-
-	local function SkinGlyphFrame()
-		local GlyphFrame = _G.GlyphFrame
-		if not GlyphFrame or GlyphFrame.isSkinned then return end
-
-		if not GlyphFrame.requiredLevelFrames then
-			GlyphFrame.requiredLevelFrames = {}
-			for i = 1, 6 do
-				local requiredLevel = GlyphFrame["RequiredLevelGlyph"..i]
-				if requiredLevel then GlyphFrame.requiredLevelFrames[i] = requiredLevel end
-			end
-		end
-
-		if GlyphFrame.glow then GlyphFrame.glow:SetAlpha(0) end
-		if GlyphFrame.background then GlyphFrame.background:SetAlpha(0) end
-
-		GlyphFrame:CreateBackdrop("Transparent")
-		S:CreateGlyphTreeArt(GlyphFrame)
-
-		local specButton = GlyphFrame.SpecButton
-		if specButton then
-			if specButton.specRing then specButton.specRing:SetAlpha(0) end
-			if specButton.specIcon then
-				specButton.specIcon:SetTexCoord(0, 1, 0, 1)
-				specButton.specIcon:Size(103)
-
-				local ring = specButton:CreateTexture(nil, "OVERLAY")
-				ring:SetTexture(GLYPH_ART.."ring-gold")
-				ring:Size(166)
-				ring:Point("CENTER", specButton.specIcon, "CENTER", 0, 0)
-			end
-		end
-
-		for i = 1, 6 do
-			local glyph = _G["GlyphFrameGlyph"..i]
-			if glyph then
-				S:HandleGlyphSocket(glyph, glyphGlobes)
-				UpdateGlyphSocket(glyph)
-			end
-
-			local requiredLevel = GlyphFrame["RequiredLevelGlyph"..i]
-			if requiredLevel then
-				if requiredLevel.levelOverlay then requiredLevel.levelOverlay:SetAlpha(0) end
-				if requiredLevel.LevelText then requiredLevel.LevelText:SetTextColor(0.7, 0.7, 0.7) end
-			end
-		end
-
-		S:AnimateGlyphGlobes(GlyphFrame, glyphGlobes)
-
-		UpdateGlyphBackground()
-
-		GlyphFrame.isSkinned = true
-	end
-
-	hooksecurefunc("GlyphFrameGlyph_UpdateSlot", UpdateGlyphSocket)
-
 	hooksecurefunc("PlayerTalentFrame_Update", function()
 		for i = 1, 3 do
 			local panel = _G["PlayerTalentFramePanel"..i]
@@ -653,42 +574,71 @@ local function LoadSkin()
 		end
 	end)
 
-	SkinGlyphFrame()
-
-	hooksecurefunc("PlayerTalentFrame_ShowGlyphFrame", function()
-		local frame = _G.GlyphFrame
-		if frame then
-			if not frame.requiredLevelFrames then
-				frame.requiredLevelFrames = {}
-			end
-			SkinGlyphFrame()
-			UpdateGlyphBackground()
-		end
-	end)
-
-		PlayerTalentPopupFrame:StripTextures()
-		PlayerTalentPopupFrame.BG:StripTextures()
-		PlayerTalentPopupFrame.BorderBox:StripTextures()
-
-		PlayerTalentPopupFrame.ScrollFrame:StripTextures()
-
-		PlayerTalentPopupFrame:CreateBackdrop("Transparent")
-		S:HandleButton(PlayerTalentPopupFrameOkayButton)
-		S:HandleButton(PlayerTalentPopupFrameCancelButton)
-		S:HandleEditBox(PlayerTalentPopupFrameEditBox)
-		S:HandleEditBox(PlayerTalentPopupFrameSearchBox)
-		S:HandleSirusScrollBar(PlayerTalentPopupFrameScrollFrameScrollBar)
-		for _,v in pairs(PlayerTalentPopupFrame.buttons) do
-			v:StripTextures()
-
-			v:StyleButton(nil, true)
-
-			v:SetTemplate("Default", true)
-			v.Icon:SetTexCoords()
-			v.Icon:SetInside()
-
-		end
-
+	S:HandleIconSelectionFrame(PlayerTalentPopupFrame)
 end
 
-S:AddCallback("Skin_Talent", LoadSkin)
+S:AddCallbackForAddon("Blizzard_TalentUI", "Skin_Talent", LoadSkin)
+
+S:AddCallbackForAddon("Blizzard_GlyphUI", "Skin_Glyph", function()
+	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.talent then return end
+
+	local GlyphFrame = _G.GlyphFrame
+	local glyphGlobes = {}
+
+	local function UpdateGlyphSocket(sock)
+		if not sock.Globe then return end
+
+		local enabled, glyphType, _, glyphSpell = GetGlyphSocketInfo(sock:GetID(), PlayerTalentFrame.talentGroup)
+		if not glyphType then return end
+
+		S:UpdateGlyphSocket(sock, glyphType == 1, (enabled and glyphSpell) and true or false)
+	end
+
+	local function UpdateGlyphBackground()
+		local talentGroup = PlayerTalentFrame.talentGroup
+		local bestPoints, bestBackground = -1, nil
+		for i = 1, 3 do
+			local _, _, points, background = GetTalentTabInfo(i, nil, nil, talentGroup)
+			if (points or 0) > bestPoints then bestPoints, bestBackground = points or 0, background end
+		end
+
+		S:LayoutGlyphTreeArt(GlyphFrame, bestBackground, GlyphFrame:GetWidth(), GlyphFrame:GetHeight())
+	end
+
+	GlyphFrame.glow:SetAlpha(0)
+	GlyphFrame.background:SetAlpha(0)
+	GlyphFrame.specRing:SetAlpha(0)
+
+	GlyphFrame:CreateBackdrop("Transparent")
+	S:CreateGlyphTreeArt(GlyphFrame)
+
+	GlyphFrame.specIcon:SetTexCoord(0, 1, 0, 1)
+	GlyphFrame.specIcon:Size(103)
+
+	local ring = GlyphFrame:CreateTexture(nil, "OVERLAY")
+	ring:SetTexture(GLYPH_ART.."ring-gold")
+	ring:Size(166)
+	ring:Point("CENTER", GlyphFrame.specIcon, "CENTER", 0, 0)
+
+	for i = 1, 6 do
+		local glyph = _G["GlyphFrameGlyph"..i]
+		S:HandleGlyphSocket(glyph, glyphGlobes)
+		UpdateGlyphSocket(glyph)
+	end
+
+	for i = 1, 2 do
+		GlyphFrame["levelOverlay"..i]:SetAlpha(0)
+		GlyphFrame["levelOverlayText"..i]:SetTextColor(0.7, 0.7, 0.7)
+	end
+
+	S:AnimateGlyphGlobes(GlyphFrame, glyphGlobes)
+	UpdateGlyphBackground()
+
+	S:HandleInsetFrame(GlyphFrame.sideInset)
+	S:HandleEditBox(GlyphFrameSearchBox)
+	S:HandleDropDownBox(GlyphFrameFilterDropDown, 220)
+	S:HandleSirusScrollBar(GlyphFrameScrollFrameScrollBar)
+
+	hooksecurefunc("GlyphFrameGlyph_UpdateSlot", UpdateGlyphSocket)
+	hooksecurefunc("PlayerTalentFrame_ShowGlyphFrame", UpdateGlyphBackground)
+end)

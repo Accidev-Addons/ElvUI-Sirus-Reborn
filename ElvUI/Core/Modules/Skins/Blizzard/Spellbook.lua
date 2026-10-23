@@ -13,8 +13,8 @@ local function LoadSkin()
 	SpellButton1:ClearAllPoints()
 	SpellButton1:Point("TOPLEFT", 62, -72)
 
-	SpellBookSearchBoxFrame:ClearAllPoints()
-	SpellBookSearchBoxFrame:Point("TOPLEFT", 66, -38)
+	SpellBookSearchBox:ClearAllPoints()
+	SpellBookSearchBox:Point("TOPLEFT", SpellBookFrame, "TOPLEFT", 66, -38)
 
 	local spellbookTabs = {}
 	for i = 1, 5 do
@@ -26,9 +26,9 @@ local function LoadSkin()
 	end
 	S:HandleSirusTabFlow(spellbookTabs, "SpellBookFrame_Update")
 
-	S:HandleCheckBox(ShowAllSpellRanksCheckBox)
-	S:HandleCheckBox(ShowUnassignedSpellBorderCheckBox)
-	ShowUnassignedSpellBorderCheckBox:SetPoint("BOTTOMLEFT", 62, 28)
+	S:HandleCheckBox(SpellBookShowAllSpellRanksCheckBox)
+	S:HandleCheckBox(SpellBookShowUnassignedSpellBorderCheckBox)
+	SpellBookShowUnassignedSpellBorderCheckBox:SetPoint("BOTTOMLEFT", 62, 28)
 
 	S:HandleEditBox(SpellBookSearchBox)
 
@@ -41,7 +41,7 @@ local function LoadSkin()
 
 	for i = 1, 12 do
 		local button = _G["SpellButton"..i]
-		local autoCast = _G["SpellButton"..i.."AutocastAutoCastable"]
+		local autoCast = _G["SpellButton"..i.."AutoCastable"]
 		button:StripTextures()
 		button:CreateBackdrop("Default", true)
 
@@ -76,32 +76,6 @@ local function LoadSkin()
 
 	end
 
-	SpellBookCompanionButton1:ClearAllPoints()
-	SpellBookCompanionButton1:Point("TOPLEFT", 62, -282)
-
-	SpellBookCompanionsModelFrame:ClearAllPoints()
-	SpellBookCompanionsModelFrame:Point("TOPLEFT", 110, -54)
-
-	SpellBookCompanionsModelFrame:SetAlpha(0)
-	SpellBookCompanionModelFrame:CreateBackdrop("Transparent")
-	SpellBookCompanionModelFrameShadowOverlay:SetAlpha(0)
-
-	S:HandleModelRotateButton(SpellBookCompanionModelFrameRotateLeftButton, 0.015625, 0.265625)
-	S:HandleModelRotateButton(SpellBookCompanionModelFrameRotateRightButton, 0.578125, 0.828125)
-	SpellBookCompanionModelFrameRotateRightButton:SetPoint("TOPLEFT", SpellBookCompanionModelFrameRotateLeftButton, "TOPRIGHT", 3, 0)
-
-	S:HandleButton(SpellBookCompanionSummonButton)
-
-	for i = 1, 12 do
-		local button = _G["SpellBookCompanionButton"..i]
-		button:StripTextures()
-		button:SetTemplate()
-		button:StyleButton()
-
-		button.IconTexture:SetInside()
-		button.IconTexture:SetTexCoords()
-	end
-
 	local function SkinProfessionButton(button)
 		button:StripTextures()
 		button:SetTemplate()
@@ -123,31 +97,10 @@ local function LoadSkin()
 
 	local function ApplyProfessionTextColors()
 		for i = 1, 4 do
-			local prof = _G["PrimaryProfession"..i]
-			if prof then
-				if prof.Missing and prof.Missing.missingHeader then
-					prof.Missing.missingHeader:SetTextColor(1, 0.82, 0)
-				end
-				if prof.Missing and prof.Missing.missingText then
-					prof.Missing.missingText:SetTextColor(1, 1, 1)
-				end
-				if prof.Learn and prof.Learn.professionName then
-					prof.Learn.professionName:SetTextColor(1, 0.82, 0)
-				end
-			end
-		end
-		for i = 1, 3 do
-			local prof = _G["SecondaryProfession"..i]
-			if prof then
-				if prof.Missing and prof.Missing.missingHeader then
-					prof.Missing.missingHeader:SetTextColor(1, 0.82, 0)
-				end
-				if prof.Missing and prof.Missing.missingText then
-					prof.Missing.missingText:SetTextColor(1, 1, 1)
-				end
-				if prof.Learn and prof.Learn.professionName then
-					prof.Learn.professionName:SetTextColor(1, 0.82, 0)
-				end
+			for _, prof in next, { _G["PrimaryProfession"..i], _G["SecondaryProfession"..i] } do
+				prof.missingHeader:SetTextColor(1, 0.82, 0)
+				prof.missingText:SetTextColor(1, 1, 1)
+				prof.professionName:SetTextColor(1, 0.82, 0)
 			end
 		end
 	end
@@ -157,28 +110,28 @@ local function LoadSkin()
 	for i = 1, 4 do
 		local prof = _G["PrimaryProfession"..i]
 
-		SkinProfessionButton(prof.Learn.button2)
-		SkinProfessionButton(prof.Learn.button1)
+		SkinProfessionButton(prof.button2)
+		SkinProfessionButton(prof.button1)
 
-		prof.Learn.statusBar:Size(188, 12)
-		S:HandleSirusStatusBar(prof.Learn.statusBar)
-		prof.Learn.statusBar.rankText:SetPoint("CENTER")
-		hooksecurefunc(prof.Learn.statusBar, "SetValue", StatusBarColor)
+		prof.statusBar:Size(188, 12)
+		S:HandleSirusStatusBar(prof.statusBar)
+		prof.statusBar.rankText:SetPoint("CENTER")
+		hooksecurefunc(prof.statusBar, "SetValue", StatusBarColor)
 	end
 
-	for i = 1, 3 do
+	for i = 1, 4 do
 		local prof = _G["SecondaryProfession"..i]
 
-		SkinProfessionButton(prof.Learn.button1)
-		SkinProfessionButton(prof.Learn.button2)
+		SkinProfessionButton(prof.button1)
+		SkinProfessionButton(prof.button2)
 
-		S:ApplyElvUIFont(prof.Learn)
+		S:ApplyElvUIFont(prof)
 
-		prof.Learn.statusBar:Size(123, 12)
-		prof.Learn.statusBar:Point("TOPLEFT", prof.Learn.rank, "BOTTOMLEFT", 2, -5)
-		S:HandleSirusStatusBar(prof.Learn.statusBar)
-		prof.Learn.statusBar.rankText:SetPoint("CENTER")
-		hooksecurefunc(prof.Learn.statusBar, "SetValue", StatusBarColor)
+		prof.statusBar:Size(123, 12)
+		prof.statusBar:Point("TOPLEFT", prof.rank, "BOTTOMLEFT", 2, -5)
+		S:HandleSirusStatusBar(prof.statusBar)
+		prof.statusBar.rankText:SetPoint("CENTER")
+		hooksecurefunc(prof.statusBar, "SetValue", StatusBarColor)
 	end
 
 	if _G.SpellFlyout then

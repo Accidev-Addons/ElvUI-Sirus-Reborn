@@ -28,7 +28,7 @@ S:AddCallback("Skin_Tutorial", function()
 
 	TutorialFrameTitle:Point("TOP", 0, -19)
 
-	S:HandleCloseButton((select(4, TutorialFrame:GetChildren())), TutorialFrame.backdrop)
+	S:HandleCloseButton(TutorialFrameCloseButton, TutorialFrame.backdrop)
 
 	S:HandleNextPrevButton(TutorialFrameNextButton)
 	TutorialFrameNextButton:Point("BOTTOMRIGHT", -132, 7)

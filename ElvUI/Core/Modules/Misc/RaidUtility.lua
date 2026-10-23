@@ -14,9 +14,9 @@ local ConvertToRaid = ConvertToRaid
 local CreateFrame = CreateFrame
 local DoReadyCheck = DoReadyCheck
 local GameTooltip_Hide = GameTooltip_Hide
-local GetDungeonDifficulty = GetDungeonDifficulty
+local GetDungeonDifficulty = GetDungeonDifficultyID
 local GetInstanceInfo = GetInstanceInfo
-local GetRaidDifficulty = GetRaidDifficulty
+local GetRaidDifficulty = GetRaidDifficultyID
 local GetRaidRosterInfo = GetRaidRosterInfo
 local GetTexCoordsByGrid = GetTexCoordsByGrid
 local InCombatLockdown = InCombatLockdown
@@ -24,8 +24,8 @@ local SendChatMessage = SendChatMessage
 local SecureHandlerSetFrameRef = SecureHandlerSetFrameRef
 local SecureHandler_OnClick = SecureHandler_OnClick
 local ShowUIPanel = ShowUIPanel
-local SetDungeonDifficulty = SetDungeonDifficulty
-local SetRaidDifficulty = SetRaidDifficulty
+local SetDungeonDifficulty = SetDungeonDifficultyID
+local SetRaidDifficulty = SetRaidDifficultyID
 local SetRaidTarget = SetRaidTarget
 local ResetInstances = ResetInstances
 local UnitClass = UnitClass
@@ -37,7 +37,7 @@ local UnitName = UnitName
 local IsInGroup = IsInGroup
 local IsInRaid = IsInRaid
 local GetNumGroupMembers = GetNumGroupMembers
-local IsRaidLeader, IsPartyLeader, IsRaidOfficer = IsRaidLeader, IsPartyLeader, IsRaidOfficer
+local UnitIsGroupLeader, UnitIsGroupAssistant = UnitIsGroupLeader, UnitIsGroupAssistant
 
 local PRIEST_COLOR = RAID_CLASS_COLORS.PRIEST
 local NUM_RAID_GROUPS = NUM_RAID_GROUPS
@@ -58,10 +58,10 @@ local groupMenuList = {
 
 local raidMenuList = {
 	{ text = _G.RAID_DIFFICULTY, isTitle = true, notCheckable = true},
-    { text = _G.RAID_DIFFICULTY1, checked = function() return GetRaidDifficulty() == 1 end, func = function() SetRaidDifficulty(1) end },
-    { text = _G.RAID_DIFFICULTY2, checked = function() return GetRaidDifficulty() == 2 end, func = function() SetRaidDifficulty(2) end },
-    { text = _G.RAID_DIFFICULTY3, checked = function() return GetRaidDifficulty() == 3 end, func = function() SetRaidDifficulty(3) end },
-    { text = _G.RAID_DIFFICULTY4, checked = function() return GetRaidDifficulty() == 4 end, func = function() SetRaidDifficulty(4) end },
+    { text = _G.RAID_DIFFICULTY1, checked = function() return GetRaidDifficulty() == 3 end, func = function() SetRaidDifficulty(3) end },
+    { text = _G.RAID_DIFFICULTY2, checked = function() return GetRaidDifficulty() == 4 end, func = function() SetRaidDifficulty(4) end },
+    { text = _G.RAID_DIFFICULTY3, checked = function() return GetRaidDifficulty() == 5 end, func = function() SetRaidDifficulty(5) end },
+    { text = _G.RAID_DIFFICULTY4, checked = function() return GetRaidDifficulty() == 6 end, func = function() SetRaidDifficulty(6) end },
 	{ text = '', isTitle = true, notCheckable = true },
 	{ text = _G.RESET_INSTANCES, notCheckable = true, func = function() ResetInstances() end},
 }
@@ -82,7 +82,7 @@ local roles = {
 }
 
 local buttonEvents = {
-	'RAID_ROSTER_UPDATE',
+	'GROUP_ROSTER_UPDATE',
 	'PARTY_LEADER_CHANGED'
 }
 
@@ -122,11 +122,11 @@ function RU:NotInPVP()
 end
 
 function RU:IsLeader()
-	return (IsInRaid() and IsRaidLeader() or IsPartyLeader()) and RU:NotInPVP()
+	return UnitIsGroupLeader('player') and RU:NotInPVP()
 end
 
 function RU:HasPermission()
-	return (IsInRaid() and (IsRaidLeader() or IsRaidOfficer()) or IsPartyLeader()) and RU:NotInPVP()
+	return (UnitIsGroupLeader('player') or (IsInRaid() and UnitIsGroupAssistant('player'))) and RU:NotInPVP()
 end
 
 function RU:InGroup()
@@ -263,8 +263,7 @@ function RU:CreateRoleIcons()
 	RoleIcons:Size(PANEL_WIDTH * 0.4, BUTTON_HEIGHT + 8)
 	RoleIcons:SetTemplate('Transparent')
 	RoleIcons:RegisterEvent('PLAYER_ENTERING_WORLD')
-	RoleIcons:RegisterEvent('RAID_ROSTER_UPDATE')
-	RoleIcons:RegisterEvent('PARTY_MEMBERS_CHANGED')
+	RoleIcons:RegisterEvent('GROUP_ROSTER_UPDATE')
 	RoleIcons:SetScript('OnEvent', RU.OnEvent_RoleIcons)
 	RoleIcons.icons = {}
 
@@ -839,12 +838,11 @@ function RU:Initialize()
 	RU:CreateRoleIcons()
 
 	local menuList = IsInRaid() and raidMenuList or groupMenuList
-	RU:CreateDropdown('RaidUtility_DungeonDifficulty', RaidUtilityPanel, 'UIDropDownMenuTemplate', BUTTON_WIDTH * 0.5 + 28.5, 'TOPLEFT', RaidCountdownButton, 'BOTTOMLEFT', 0, -5, L["Difficulty"], E:GetDifficultyText(IsInRaid()), { 'CHAT_MSG_SYSTEM', 'RAID_ROSTER_UPDATE' }, RU.OnEvent_DungeonDifficulty, RU.OnSelect_DungeonDifficulty, menuList)
+	RU:CreateDropdown('RaidUtility_DungeonDifficulty', RaidUtilityPanel, 'UIDropDownMenuTemplate', BUTTON_WIDTH * 0.5 + 28.5, 'TOPLEFT', RaidCountdownButton, 'BOTTOMLEFT', 0, -5, L["Difficulty"], E:GetDifficultyText(IsInRaid()), { 'CHAT_MSG_SYSTEM', 'GROUP_ROSTER_UPDATE' }, RU.OnEvent_DungeonDifficulty, RU.OnSelect_DungeonDifficulty, menuList)
 	RU:UpdateDifficultyDropdown() -- Ensure the correct menu is set initially
 
 	-- Automatically show/hide the frame if we have RaidLeader or RaidOfficer
-	RU:RegisterEvent('RAID_ROSTER_UPDATE', 'ToggleRaidUtil')
-	RU:RegisterEvent('PARTY_MEMBERS_CHANGED', 'ToggleRaidUtil')
+	RU:RegisterEvent('GROUP_ROSTER_UPDATE', 'ToggleRaidUtil')
 	RU:RegisterEvent('PLAYER_ENTERING_WORLD', 'ToggleRaidUtil')
 end
 

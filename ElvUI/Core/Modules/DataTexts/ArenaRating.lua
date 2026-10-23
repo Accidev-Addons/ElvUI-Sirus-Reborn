@@ -6,9 +6,9 @@ local ipairs, select, wipe = ipairs, select, wipe
 local tconcat, tinsert = table.concat, tinsert
 
 local C_GlobalStorage = C_GlobalStorage
-local GetArenaRating = GetArenaRating
-local GetRatedBattlegroundRankInfo = GetRatedBattlegroundRankInfo
-local TogglePVPUIFrame = TogglePVPUIFrame
+local GetArenaRating = C_PvP.GetArenaRating
+local GetRatedBattlegroundRankInfo = C_PvP.GetRatedBattlegroundRankInfo
+local TogglePVPUI = TogglePVPUI
 
 local PVP_LADDER_DAY = PVP_LADDER_DAY
 local PVP_LADDER_SEASON = PVP_LADDER_SEASON
@@ -85,7 +85,7 @@ local function OnEnter()
 end
 
 local function OnClick()
-	TogglePVPUIFrame()
+	TogglePVPUI()
 end
 
 local function ApplySettings(self, hex)

@@ -21,7 +21,7 @@ end
 
 local function DeferCaptureBarWork(func)
 	return function(id)
-		C_Timer:After(0, function()
+		C_Timer.After(0, function()
 			local bar = _G["WorldStateCaptureBar"..id]
 			if bar and bar.CanChangeProtectedState and not bar:CanChangeProtectedState() then return end
 
@@ -151,6 +151,6 @@ S:AddCallback("Skin_WorldStateFrame", function()
 	captureBarSkinsUpdate()
 
 	hooksecurefunc('WorldStateAlwaysUpFrame_Update', function()
-		C_Timer:After(0, captureBarSkinsUpdate)
+		C_Timer.After(0, captureBarSkinsUpdate)
 	end)
 end)

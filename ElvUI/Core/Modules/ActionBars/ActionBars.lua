@@ -9,6 +9,9 @@ local ClearOverrideBindings = ClearOverrideBindings
 local CreateFrame = CreateFrame
 local GetActionBarToggles = GetActionBarToggles
 local GetBindingKey = GetBindingKey
+local GetOverrideBarIndex = GetOverrideBarIndex
+local GetTempShapeshiftBarIndex = GetTempShapeshiftBarIndex
+local GetVehicleBarIndex = GetVehicleBarIndex
 local hooksecurefunc = hooksecurefunc
 local InCombatLockdown = InCombatLockdown
 local IsPossessBarVisible = IsPossessBarVisible
@@ -62,10 +65,11 @@ AB.barDefaults = {
 }
 
 function AB:UpdateBar1Paging()
+	local special = format('[overridebar] %d; [vehicleui] %d; [possessbar] %d; [shapeshift] %d; [bonusbar:5] 11;', GetOverrideBarIndex(), GetVehicleBarIndex(), GetVehicleBarIndex(), GetTempShapeshiftBarIndex())
 	if AB.db.bar6.enabled then
-		AB.barDefaults.bar1.conditions = '[bonusbar:5] 11; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;'
+		AB.barDefaults.bar1.conditions = special .. ' [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;'
 	else
-		AB.barDefaults.bar1.conditions = '[bonusbar:5] 11; [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;'
+		AB.barDefaults.bar1.conditions = special .. ' [bar:2] 2; [bar:3] 3; [bar:4] 4; [bar:5] 5; [bar:6] 6;'
 	end
 end
 
@@ -222,7 +226,7 @@ function AB:ActivePages(page)
 end
 
 function AB:HandleButtonState(button, index, vehicleIndex, pages)
-	for k = 1, 12 do
+	for k = 1, GetOverrideBarIndex() do
 		if pages and pages[k] then
 			button:SetState(k, 'action', (k - 1) * 12 + index)
 		else
@@ -293,7 +297,7 @@ function AB:PositionAndSizeBar(barName)
 			lastShownButton = button
 		end
 
-		AB:HandleButtonState(button, i, 11, pages)
+		AB:HandleButtonState(button, i, GetVehicleBarIndex(), pages)
 		AB:HandleButton(bar, button, i, lastButton, lastColumnButton)
 		AB:StyleButton(button, nil, bar.MasqueGroup and E.private.actionbar.masque.actionbars)
 	end
@@ -801,19 +805,17 @@ end
 
 do
 	local untaint = {
-		'ShapeshiftBarFrame',
+		'StanceBar',
 		'MainMenuBarArtFrame',
 		'ReputationWatchBar',
 		'MainMenuExpBar',
 		'MultiBarLeft',
-		'VehicleMenuBar',
+		'OverrideActionBar',
 		'MultiBarRight',
 		'MultiBarBottomLeft',
 		'MultiBarBottomRight',
 		'MainMenuBar',
-		'BonusActionBarFrame',
-		'PetActionBarFrame',
-		'PossessBarFrame'
+		'PetActionBarFrame'
 	}
 
 	function AB:ButtonEventsRegisterFrame(added)
@@ -887,8 +889,6 @@ do
 			'MultiBarBottomRightButton',
 			'MultiBarRightButton',
 			'MultiBarLeftButton',
-			'BonusActionButton',
-			'VehicleMenuBarActionButton',
 		}
 
 		if not secureHider then

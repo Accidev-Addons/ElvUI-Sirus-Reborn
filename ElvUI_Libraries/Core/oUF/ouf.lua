@@ -347,7 +347,7 @@ local function initObject(unit, style, styleFunc, header, ...)
 	local num = select('#', ...)
 	for i = 1, num do
 		local object = select(i, ...)
-		local objectUnit = object.guessUnit or unit
+		local objectUnit = object:GetAttribute('oUF-guessUnit') or unit
 		local suffix = object:GetAttribute('unitsuffix')
 
 		object.__elements = {}
@@ -398,9 +398,11 @@ local function initObject(unit, style, styleFunc, header, ...)
 				oUF:HandleUnit(object)
 			end
 		else
+			object.menu = togglemenu
+
 			-- update the frame when its prev unit is replaced with a new one
 			-- updateRaid relies on UnitGUID to detect the unit change
-			object:RegisterEvent('RAID_ROSTER_UPDATE', updateRaid)
+			object:RegisterEvent('GROUP_ROSTER_UPDATE', updateRaid)
 
 			if(num > 1) then
 				if(object:GetParent() == header) then
@@ -621,13 +623,16 @@ do
 	end
 
 	-- There has to be an easier way to do this.
-	local initialConfigFunction = function(self)
+	local initialConfigFunction = [[
 		local header = self:GetParent()
-		for i = 1, select('#', self), 1 do
-			local frame = select(i, self)
+		local frames = table.new()
+		table.insert(frames, self)
+		self:GetChildList(frames)
+		for i = 1, #frames do
+			local frame = frames[i]
 			local unit
 			-- There's no need to do anything on frames with onlyProcessChildren
-			if(not frame.onlyProcessChildren) then
+			if(not frame:GetAttribute('oUF-onlyProcessChildren')) then
 				-- Attempt to guess what the header is set to spawn.
 				local groupFilter = header:GetAttribute('groupFilter')
 
@@ -644,7 +649,7 @@ do
 					unit = 'party'
 				end
 
-				local headerType = header.headerType
+				local headerType = header:GetAttribute('oUF-headerType')
 				local suffix = frame:GetAttribute('unitsuffix')
 				if(unit and suffix) then
 					if(headerType == 'pet' and suffix == 'target') then
@@ -656,16 +661,15 @@ do
 					unit = unit .. headerType
 				end
 
-				frame.menu = togglemenu
 				frame:SetAttribute('*type1', 'target')
 				frame:SetAttribute('*type2', 'menu')
 				frame:SetAttribute('toggleForVehicle', true)
-				frame.guessUnit = unit
+				frame:SetAttribute('oUF-guessUnit', unit)
 			end
 		end
 
-		header:styleFunction(self:GetName())
-	end
+		header:CallMethod('styleFunction', self:GetName())
+	]]
 
 	--[[ oUF:SpawnHeader(overrideName, template, visibility, ...)
 	Used to create a group header and apply the currently active style to it.
@@ -710,7 +714,8 @@ do
 		-- Expose the header through oUF.headers.
 		table.insert(headers, header)
 
-		header.initialConfigFunction = initialConfigFunction
+		header:SetAttribute('initialConfigFunction', initialConfigFunction)
+		header:SetAttribute('oUF-headerType', isPetHeader and 'pet' or 'group')
 		header.headerType = isPetHeader and 'pet' or 'group'
 
 		if(header:GetAttribute('showParty')) then

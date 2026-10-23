@@ -2,8 +2,6 @@
 	<Script file="SirusKit.lua"/>
 	<Script file="Achievement.lua"/>
 	<Script file="Alerts.lua"/>
-	<Script file="Arena.lua"/>
-	<Script file="ArenaRegistrar.lua"/>
 	<Script file="AuctionHouse.lua"/>
 	<Script file="BGMap.lua"/>
 	<Script file="BGScore.lua"/>

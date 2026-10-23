@@ -36,50 +36,22 @@ local function SkinMoneyFrame(mf)
 	mf:StripTextures()
 	mf:CreateBackdrop("Transparent")
 	mf.backdrop:SetAllPoints()
-
-	for _, coin in pairs({"Gold", "Silver", "Copper"}) do
-		local button = mf[coin.."Button"]
-		if button then
-			button:StripTextures()
-			button:SetTemplate(nil, nil, nil, nil, nil, nil, nil, true)
-			button:StyleButton()
-		end
-	end
 end
 
-local function ApplySkin()
+local function LoadSkin()
+	if not E.private.skins.blizzard.enable then return end
+
 	local frame = _G.BlackMarketFrame
-	if not frame or frame.ElvSkinned then return end
-	frame.ElvSkinned = true
-
 	frame:StripTextures()
-
-	if frame.art then
-		frame.art:StripTextures()
-		frame.art:SetAlpha(0)
-	end
-
-	-- Kill the sign texture overlay
-	if frame.Artwork then
-		frame.Artwork:StripTextures()
-		frame.Artwork:SetAlpha(0)
-	end
-
 	frame:SetTemplate("Transparent")
 
-	local inset = _G.BlackMarketFrameInset
-	if inset then
-		inset:StripTextures()
-		inset:SetTemplate("Transparent")
-	end
+	frame.Inset:StripTextures()
+	frame.Inset:SetTemplate("Transparent")
 
 	S:HandleCloseButton(frame.CloseButton)
 
-	local moneyBorder = _G.BlackMarketFrameMoneyFrameBorder
-	if moneyBorder then
-		moneyBorder:StripTextures()
-		moneyBorder:SetTemplate("Transparent")
-	end
+	frame.MoneyFrameBorder:StripTextures()
+	frame.MoneyFrameBorder:SetTemplate("Transparent")
 
 	SkinMoneyFrame(_G.BlackMarketMoneyFrame)
 
@@ -97,32 +69,20 @@ local function ApplySkin()
 	if bidPrice then
 		bidPrice:StripTextures()
 		bidPrice:CreateBackdrop("Transparent")
-
-		if bidPrice.MoneyBg then
-			bidPrice.MoneyBg:Kill()
-		end
-
-		if bidPrice.MoneyInputFrameInset then
-			bidPrice.MoneyInputFrameInset:StripTextures()
-		end
 	end
 
 	for _, colName in pairs({"ColumnName", "ColumnLevel", "ColumnType", "ColumnDuration", "ColumnHighBidder", "ColumnCurrentBid"}) do
 		local col = frame[colName]
-		if col then
-			S:HandleButton(col)
-		end
+		col:StripTextures()
+		col:SetTemplate("Transparent")
 	end
 
 	local scrollFrame = _G.BlackMarketScrollFrame
 	if scrollFrame then
 		scrollFrame:StripTextures()
+		S:HandleSirusScrollBar(_G.BlackMarketScrollFrameScrollBar)
 
-		if scrollFrame.scrollBar then
-			S:HandleSirusScrollBar(scrollFrame.scrollBar)
-		end
-
-		hooksecurefunc(scrollFrame, "update", SkinItemRows)
+		hooksecurefunc("BlackMarketScrollFrame_Update", SkinItemRows)
 		SkinItemRows()
 	end
 
@@ -145,21 +105,4 @@ local function ApplySkin()
 	end
 end
 
-local function LoadSkin()
-	if not E.private.skins.blizzard.enable then return end
-
-	if _G.BlackMarketFrame then
-		ApplySkin()
-	else
-		local f = CreateFrame("Frame")
-		f:RegisterEvent("PLAYER_LOGIN")
-		f:SetScript("OnEvent", function(self)
-			if _G.BlackMarketFrame then
-				ApplySkin()
-				self:UnregisterAllEvents()
-			end
-		end)
-	end
-end
-
-S:AddCallback("Skin_BlackMarket", LoadSkin)
+S:AddCallbackForAddon("Blizzard_BlackMarketUI", "Skin_BlackMarket", LoadSkin)

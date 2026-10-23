@@ -6,6 +6,7 @@ local strjoin = strjoin
 local GetLFGRandomDungeonInfo = GetLFGRandomDungeonInfo
 local GetLFGRoleShortageRewards = GetLFGRoleShortageRewards
 local GetNumRandomDungeons = GetNumRandomDungeons
+local LFG_ROLE_NUM_SHORTAGE_TYPES = LFG_ROLE_NUM_SHORTAGE_TYPES
 local ToggleFrame = ToggleFrame
 
 local BATTLEGROUND_HOLIDAY = BATTLEGROUND_HOLIDAY
@@ -42,10 +43,12 @@ local function OnEvent(self)
 	--Dungeons
 	for i = 1, GetNumRandomDungeons() do
 		local id = GetLFGRandomDungeonInfo(i)
-		local eligible, forTank, forHealer, forDamage, itemCount = GetLFGRoleShortageRewards(id)
-		if eligible and forTank and itemCount > 0 then tankReward = true; unavailable = false end
-		if eligible and forHealer and itemCount > 0 then healerReward = true; unavailable = false end
-		if eligible and forDamage and itemCount > 0 then dpsReward = true; unavailable = false end
+		for severity = 1, LFG_ROLE_NUM_SHORTAGE_TYPES do
+			local eligible, forTank, forHealer, forDamage, itemCount = GetLFGRoleShortageRewards(id, severity)
+			if eligible and forTank and itemCount > 0 then tankReward = true; unavailable = false end
+			if eligible and forHealer and itemCount > 0 then healerReward = true; unavailable = false end
+			if eligible and forDamage and itemCount > 0 then dpsReward = true; unavailable = false end
+		end
 	end
 
 	local stat = unavailable and NOT_APPLICABLE or MakeIconString(tankReward, healerReward, dpsReward)
@@ -81,11 +84,13 @@ local function OnEnter()
 		local dpsReward = false
 		local unavailable = true
 
-		local eligible, forTank, forHealer, forDamage, itemCount = GetLFGRoleShortageRewards(id)
-		if eligible then unavailable = false end
-		if eligible and forTank and itemCount > 0 then tankReward = true end
-		if eligible and forHealer and itemCount > 0 then healerReward = true end
-		if eligible and forDamage and itemCount > 0 then dpsReward = true end
+		for severity = 1, LFG_ROLE_NUM_SHORTAGE_TYPES do
+			local eligible, forTank, forHealer, forDamage, itemCount = GetLFGRoleShortageRewards(id, severity)
+			if eligible then unavailable = false end
+			if eligible and forTank and itemCount > 0 then tankReward = true end
+			if eligible and forHealer and itemCount > 0 then healerReward = true end
+			if eligible and forDamage and itemCount > 0 then dpsReward = true end
+		end
 
 		if not unavailable then
 			local rolesString = MakeIconString(tankReward, healerReward, dpsReward)

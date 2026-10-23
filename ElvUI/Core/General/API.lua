@@ -17,14 +17,14 @@ local CopyTable = CopyTable
 local CreateFrame = CreateFrame
 local GetBattlefieldArenaFaction = GetBattlefieldArenaFaction
 local GetCVarBool = GetCVarBool
-local GetDungeonDifficulty = GetDungeonDifficulty
+local GetDungeonDifficultyID = GetDungeonDifficultyID
 local GetFunctionCPUUsage = GetFunctionCPUUsage
 local GetGameTime = GetGameTime
 local GetInstanceInfo = GetInstanceInfo
 local GetNumGroupMembers = GetNumGroupMembers
 local GetNumSubgroupMembers = GetNumSubgroupMembers
 local GetPartyAssignment = GetPartyAssignment
-local GetRaidDifficulty = GetRaidDifficulty
+local GetRaidDifficultyID = GetRaidDifficultyID
 local GetWatchedFactionInfo = GetWatchedFactionInfo
 local HideUIPanel = HideUIPanel
 local InCombatLockdown = InCombatLockdown
@@ -93,6 +93,7 @@ E.SpecByClass = {
 	SHAMAN		= { 262, 263, 264 },
 	WARLOCK		= { 265, 266, 267 },
 	WARRIOR		= { 71, 72, 73 },
+	MONK		= { 268, 270, 269 },
 }
 
 E.ClassName = {
@@ -106,6 +107,7 @@ E.ClassName = {
 	SHAMAN		= 'Shaman',
 	WARLOCK		= 'Warlock',
 	WARRIOR		= 'Warrior',
+	MONK		= 'Monk',
 }
 
 local EnglishClassName = CopyTable(E.ClassName)
@@ -152,6 +154,9 @@ local EnglishSpecName = {
 	[71]	= 'Arms',
 	[72]	= 'Fury',
 	[73]	= 'Protection',
+	[268]	= 'Brewmaster',
+	[269]	= 'Windwalker',
+	[270]	= 'Mistweaver',
 }
 
 E.SpecName = {}
@@ -190,6 +195,7 @@ do
 		[72]	= 'WARRIOR_SPEC_FURY_TITLE',
 		[73]	= 'WARRIOR_SPEC_PROTECTION_TITLE',
 	}
+	local GetSpecializationInfoByID = _G.GetSpecializationInfoByID
 
 	local localizedClass = _G.LOCALIZED_CLASS_NAMES_MALE
 	for classFile, name in pairs(E.ClassName) do
@@ -202,7 +208,7 @@ do
 	end
 
 	for id, name in pairs(EnglishSpecName) do
-		local localized = _G[SpecNameGlobal[id]]
+		local localized = _G[SpecNameGlobal[id]] or select(2, GetSpecializationInfoByID(id))
 		if type(localized) == 'string' and localized ~= '' then
 			E.SpecName[id] = localized
 		else
@@ -294,31 +300,6 @@ function E:GetItemQualityColor(quality)
 	end
 end
 
--- taken from https://gitlab.com/Tsoukie/classicapi/-/blob/main/!!!ClassicAPI/Util/C_CreatureInfo.lua
-local classData = {
-	[1] = 'WARRIOR',
-	[2] = 'PALADIN',
-	[3] = 'HUNTER',
-	[4] = 'ROGUE',
-	[5] = 'PRIEST',
-	[6] = 'DEATHKNIGHT',
-	[7] = 'SHAMAN',
-	[8] = 'MAGE',
-	[9] = 'WARLOCK',
-	[11] = 'DRUID',
-}
-
-local function GetClassInfo(classID)
-	local classFile = classData[classID]
-	if not classFile then return end
-
-	return {
-		className = _G.LOCALIZED_CLASS_NAMES_MALE[classFile],
-		classFile = classFile,
-		classID = classID
-	}
-end
-
 do
 	local classByID = {}
 	local classByFile = {}
@@ -326,11 +307,12 @@ do
 	E.ClassInfoByID = classByID
 	E.ClassInfoByFile = classByFile
 
-	for index = 1, 11 do
-		local info = GetClassInfo(index)
-		if info then
-			classByID[info.classID] = info
-			classByFile[info.classFile] = info
+	for index = 1, GetNumClasses() do
+		local className, classFile, classID = GetClassInfo(index)
+		if classFile then
+			local info = { className = className, classFile = classFile, classID = classID }
+			classByID[classID] = info
+			classByFile[classFile] = info
 		end
 	end
 end
@@ -508,10 +490,9 @@ function E:GetThreatStatusColor(status, nothreat)
 end
 
 function E:GetPlayerRole()
-	local tank, healer, damage = UnitGroupRolesAssigned('player')
-	local role = (tank and 'TANK') or (healer and 'HEALER') or (damage and 'DAMAGER') or NONE
+	local role = UnitGroupRolesAssigned('player')
 
-	return (role ~= NONE and role) or E.myspecRole or NONE
+	return (role ~= 'NONE' and role) or E.myspecRole or NONE
 end
 
 function E:CheckRole()
@@ -525,8 +506,8 @@ function E:CheckRole()
 end
 
 function E:GetDifficultyText(isRaid)
-	local dungID = GetDungeonDifficulty()
-	local raidID = GetRaidDifficulty()
+	local dungID = GetDungeonDifficultyID()
+	local raidID = GetRaidDifficultyID() - 2
 
     local id = isRaid and raidID or dungID
 	local diffID = isRaid and (id > 2 and 2 or 1) or id
@@ -1185,8 +1166,7 @@ function E:GroupRosterUpdate()
 		for i = 1, members do
 			local unit = group..i
 			local guid = UnitGUID(unit)
-			local isTank, isHealer, isDamage = UnitGroupRolesAssigned(unit)
-			local role = guid and ((GetPartyAssignment('MAINTANK', unit) and 'TANK') or (isTank and 'TANK') or (isHealer and 'HEALER') or (isDamage and 'DAMAGER') or 'NONE')
+			local role = guid and ((GetPartyAssignment('MAINTANK', unit) and 'TANK') or UnitGroupRolesAssigned(unit))
 			if role == 'NONE' then
 				role = LGT_ROLES[LGT:GetUnitRole(unit)] or 'NONE'
 			end
@@ -1200,8 +1180,7 @@ function E:GroupRosterUpdate()
 end
 
 function E:LoadAPI()
-	E:RegisterEvent('PARTY_MEMBERS_CHANGED', 'GroupRosterUpdate')
-	E:RegisterEvent('RAID_ROSTER_UPDATE', 'GroupRosterUpdate')
+	E:RegisterEvent('GROUP_ROSTER_UPDATE', 'GroupRosterUpdate')
 	E:RegisterEvent('PLAYER_LEVEL_UP')
 	E:RegisterEvent('PLAYER_ENTERING_WORLD')
 	E:RegisterEvent('PLAYER_REGEN_ENABLED')

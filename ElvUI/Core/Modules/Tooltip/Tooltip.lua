@@ -25,8 +25,8 @@ local C_Inspect_RequestAvgItemLevel = C_Inspect and C_Inspect.RequestAvgItemLeve
 local C_Unit_GetClassification = C_Unit and C_Unit.GetClassification
 local C_Unit_GetZodiacByDebuff = C_Unit and C_Unit.GetZodiacByDebuff
 local GetMouseFocus = GetMouseFocus
-local GetNumPartyMembers = GetNumPartyMembers
-local GetNumRaidMembers = GetNumRaidMembers
+local GetNumGroupMembers = GetNumGroupMembers
+local IsInRaid = IsInRaid
 local GetQuestDifficultyColor = GetQuestDifficultyColor
 local InCombatLockdown = InCombatLockdown
 local IsAltKeyDown = IsAltKeyDown
@@ -426,10 +426,10 @@ function TT:AddTargetInfo(tt, unit)
 		tt:AddDoubleLine(format('%s:', _G.TARGET), format('|cff%02x%02x%02x%s|r', targetColor.r * 255, targetColor.g * 255, targetColor.b * 255, UnitName(unitTarget)))
 	end
 
-	local numParty, numRaid = GetNumPartyMembers(), GetNumRaidMembers()
-	if numParty > 0 or numRaid > 0 then
-		local isInRaid = numRaid > 0
-		for i = 1, (isInRaid and numRaid or numParty) do
+	local numGroup = GetNumGroupMembers()
+	if numGroup > 0 then
+		local isInRaid = IsInRaid()
+		for i = 1, (isInRaid and numGroup or numGroup - 1) do
 			local groupUnit = (isInRaid and 'raid' or 'party')..i
 			if UnitIsUnit(groupUnit..'target', unit) and not UnitIsUnit(groupUnit,'player') then
 				local _, class = UnitClass(groupUnit)
@@ -694,14 +694,15 @@ function TT:GameTooltip_OnTooltipSetItem(data)
 end
 
 function TT:GameTooltip_ShowStatusBar(tt)
-	if not tt then return end
+	if not tt or not tt.statusBarPool then return end
 
-	local sb = _G[tt:GetName()..'StatusBar'..tt.shownStatusBars]
-	if not sb or sb.backdrop then return end
-
-	sb:StripTextures()
-	sb:CreateBackdrop(nil, nil, true, true)
-	sb:SetStatusBarTexture(E.media.normTex)
+	for sb in tt.statusBarPool:EnumerateActive() do
+		if not sb.backdrop then
+			sb:StripTextures()
+			sb:CreateBackdrop(nil, nil, true, true)
+			sb:SetStatusBarTexture(E.media.normTex)
+		end
+	end
 end
 
 function TT:SetStyle(tt, quality)

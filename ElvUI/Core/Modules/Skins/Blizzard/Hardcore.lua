@@ -12,8 +12,6 @@ local function LoadSkin()
 	S:HandleButton(HardcoreFrame.ParticipantsTab, true)
 	S:HandleButton(HardcoreFrame.LadderTab, true)
 
-	S:HandleSirusTabs("HardcoreFrameTab", 4)
-
 	S:HandleButton(HardcoreFrame.SuggestFrame.Suggestion2.CenterDisplay.Button)
 	S:HandleButton(HardcoreFrame.SuggestFrame.Suggestion3.CenterDisplay.Button)
 

@@ -98,7 +98,7 @@ function UF:Configure_ClassBar(frame)
 	local color = E.db.unitframe.colors.borderColor
 	bars.backdrop:SetBackdropBorderColor(color.r, color.g, color.b)
 
-	if frame.ClassBar == "Runes" then
+	if frame.ClassBar == "Runes" or frame.ClassBar == "ClassPower" then
 		if (not frame.USE_MINI_CLASSBAR) and frame.USE_CLASSBAR then
 			bars.backdrop:Show()
 		else
@@ -178,11 +178,11 @@ function UF:Configure_ClassBar(frame)
 		end
 	elseif frame.CLASSBAR_DETACHED then
 		if frame.USE_MINI_CLASSBAR and not (frame.MAX_CLASS_BAR == 1 or frame.ClassBar == "AdditionalPower") then
-			local widthMult = UF.classMaxResourceBar[E.myclass] - 1
+			local widthMult = frame.MAX_CLASS_BAR - 1
 			if db.classbar.orientation == "HORIZONTAL" then
 				bars.Holder:Size(db.classbar.detachedWidth + (db.classbar.spacing * widthMult) - (widthMult * 5), db.classbar.height)
 			else
-				bars.Holder:Size(db.classbar.detachedWidth, (db.classbar.height * UF.classMaxResourceBar[E.myclass]) + (db.classbar.spacing * widthMult))
+				bars.Holder:Size(db.classbar.detachedWidth, (db.classbar.height * frame.MAX_CLASS_BAR) + (db.classbar.spacing * widthMult))
 			end
 		else
 			bars.Holder:Size(db.classbar.detachedWidth, db.classbar.height)
@@ -242,6 +242,9 @@ function UF:Configure_ClassBar(frame)
 		if frame.Runes and not frame:IsElementEnabled("Runes") then
 			frame:EnableElement("Runes")
 		end
+		if frame.ClassPower and not frame:IsElementEnabled("ClassPower") then
+			frame:EnableElement("ClassPower")
+		end
 		if bars.Holder then
 			bars.Holder:Show()
 		end
@@ -251,6 +254,9 @@ function UF:Configure_ClassBar(frame)
 		end
 		if frame.Runes and frame:IsElementEnabled("Runes") then
 			frame:DisableElement("Runes")
+		end
+		if frame.ClassPower and frame:IsElementEnabled("ClassPower") then
+			frame:DisableElement("ClassPower")
 		end
 		if bars.Holder then
 			bars.Holder:Hide()
@@ -353,6 +359,59 @@ function UF:PostVisibilityRunes(enabled, stateChanged)
 		UF:Configure_HealthBar(frame)
 		UF:Configure_Power(frame)
 		UF:Configure_InfoPanel(frame, true)
+	end
+end
+
+function UF:Construct_ClassPowerBar(frame)
+	local bars = CreateFrame("Frame", nil, frame)
+	bars:CreateBackdrop(nil, nil, nil, self.thinBorders, true)
+
+	for i = 1, UF.classMaxResourceBar[E.myclass] do
+		bars[i] = CreateFrame("StatusBar", frame:GetName().."ClassPowerButton"..i, bars)
+		bars[i]:SetStatusBarTexture(E.media.blankTex)
+		bars[i]:GetStatusBarTexture():SetHorizTile(false)
+		UF.statusbars[bars[i]] = true
+
+		bars[i]:CreateBackdrop(nil, nil, nil, self.thinBorders, true)
+		bars[i].backdrop:SetParent(bars)
+		bars[i].backdrop:OffsetFrameLevel(-1, bars[i])
+
+		bars[i].bg = bars[i]:CreateTexture(nil, "BORDER")
+		bars[i].bg:SetAllPoints()
+		bars[i].bg:SetTexture(E.media.blankTex)
+		bars[i].bg:SetParent(bars[i].backdrop)
+		bars[i].bg.multiplier = 0.35
+	end
+
+	bars.PostUpdate = UF.PostUpdateClassPower
+
+	bars:SetScript("OnShow", ToggleResourceBar)
+	bars:SetScript("OnHide", ToggleResourceBar)
+
+	return bars
+end
+
+function UF:PostUpdateClassPower(cur, max, hasMaxChanged)
+	local frame = self.origParent or self:GetParent()
+	local db = frame.db
+	if not db then return end
+
+	local custom_backdrop = UF.db.colors.customclasspowerbackdrop and UF.db.colors.classpower_backdrop
+	if custom_backdrop then
+		for i = 1, #self do
+			self[i].bg:SetVertexColor(custom_backdrop.r, custom_backdrop.g, custom_backdrop.b)
+		end
+	end
+
+	if hasMaxChanged and max > 0 then
+		frame.MAX_CLASS_BAR = max
+		UF:Configure_ClassBar(frame)
+	end
+
+	if frame.USE_CLASSBAR and max > 0 and (cur > 0 or not db.classbar.autoHide) then
+		self:Show()
+	else
+		self:Hide()
 	end
 end
 

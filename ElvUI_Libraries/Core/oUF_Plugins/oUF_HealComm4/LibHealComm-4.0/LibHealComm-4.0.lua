@@ -20,8 +20,8 @@ local tconcat, tinsert, tremove, twipe = table.concat, table.insert, table.remov
 local GetGlyphSocketInfo = GetGlyphSocketInfo
 local GetInventoryItemLink = GetInventoryItemLink
 local GetNumGlyphSockets = GetNumGlyphSockets
-local GetNumPartyMembers = GetNumPartyMembers
-local GetNumRaidMembers = GetNumRaidMembers
+local IsInRaid = IsInRaid
+local GetNumSubgroupMembers = GetNumSubgroupMembers
 local GetNumSpellTabs = GetNumSpellTabs
 local GetNumTalentTabs = GetNumTalentTabs
 local GetNumTalents = GetNumTalents
@@ -29,7 +29,7 @@ local GetRaidRosterInfo = GetRaidRosterInfo
 local GetSpellBonusHealing = GetSpellBonusHealing
 local GetSpellCritChance = GetSpellCritChance
 local GetSpellInfo = GetSpellInfo
-local GetSpellName = GetSpellName
+local GetSpellBookItemName = GetSpellBookItemName
 local GetSpellTabInfo = GetSpellTabInfo
 local GetTalentInfo = GetTalentInfo
 local GetTime = GetTime
@@ -200,8 +200,8 @@ if( not HealComm.spellToID ) then
 			local offset, numSpells = select(3, GetSpellTabInfo(GetNumSpellTabs()))
 			for id=1, (offset + numSpells) do
 				-- Match, yay!
-				local spellName, spellRank = GetSpellName(id, BOOKTYPE_SPELL)
-				local name = spellName .. spellRank
+				local spellName, spellRank = GetSpellBookItemName(id, BOOKTYPE_SPELL)
+				local name = spellName .. (spellRank or "")
 				if( index == name ) then
 					HealComm.tooltip:SetSpell(id, BOOKTYPE_SPELL)
 					local spellID = select(3, HealComm.tooltip:GetSpell())
@@ -1747,9 +1747,9 @@ local function updateDistributionChannel()
 	local lastChannel = distribution
 	if( instanceType == "pvp" or instanceType == "arena" ) then
 		distribution = "BATTLEGROUND"
-	elseif( GetNumRaidMembers() > 0 ) then
+	elseif( IsInRaid() ) then
 		distribution = "RAID"
-	elseif( GetNumPartyMembers() > 0 ) then
+	elseif( GetNumSubgroupMembers() > 0 ) then
 		distribution = "PARTY"
 	else
 		distribution = nil
@@ -1928,7 +1928,6 @@ function HealComm:PLAYER_TALENT_UPDATE()
 end
 
 -- Save the currently equipped range weapon
-local RANGED_SLOT = GetInventorySlotInfo("RangedSlot")
 function HealComm:PLAYER_EQUIPMENT_CHANGED()
 	-- Caches set bonus info, as you can't reequip set bonus gear in combat no sense in checking it
 	if( not InCombatLockdown() ) then
@@ -1942,9 +1941,6 @@ function HealComm:PLAYER_EQUIPMENT_CHANGED()
 		end
 	end
 
-	-- Check relic
-	local relic = GetInventoryItemLink("player", RANGED_SLOT)
-	playerCurrentRelic = relic and tonumber(match(relic, "item:(%d+):")) or nil
 end
 
 -- COMM CODE
@@ -2317,7 +2313,7 @@ end
 
 local COMBATLOG_OBJECT_AFFILIATION_MINE = COMBATLOG_OBJECT_AFFILIATION_MINE
 local CAN_HEAL = bor(COMBATLOG_OBJECT_REACTION_FRIENDLY, COMBATLOG_OBJECT_REACTION_NEUTRAL)
-function HealComm:COMBAT_LOG_EVENT_UNFILTERED(timestamp, eventType, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, ...)
+function HealComm:COMBAT_LOG_EVENT_UNFILTERED(timestamp, eventType, hideCaster, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, ...)
 	if( not eventRegistered[eventType] ) then return end
 
 	-- Heal or hot ticked that the library is tracking
@@ -2770,10 +2766,10 @@ end
 
 -- Keep track of party GUIDs, ignored in raids as RRU will handle that mapping
 function HealComm:PARTY_MEMBERS_CHANGED()
-	if( GetNumRaidMembers() > 0 ) then return end
+	if( IsInRaid() ) then return end
 	updateDistributionChannel()
 
-	if( GetNumPartyMembers() == 0 ) then
+	if( GetNumSubgroupMembers() == 0 ) then
 		if( wasInParty ) then
 			clearGUIDData()
 		end
@@ -2807,7 +2803,7 @@ function HealComm:RAID_ROSTER_UPDATE()
 	updateDistributionChannel()
 
 	-- Left raid, clear any cache we had
-	if( GetNumRaidMembers() == 0 ) then
+	if( not IsInRaid() ) then
 		if( wasInRaid ) then
 			clearGUIDData()
 		end
@@ -2926,6 +2922,11 @@ function HealComm:OnInitialize()
 	end
 end
 
+function HealComm:GROUP_ROSTER_UPDATE()
+	self:RAID_ROSTER_UPDATE()
+	self:PARTY_MEMBERS_CHANGED()
+end
+
 -- General event handler
 local function OnEvent(self, event, ...)
 	HealComm[event](HealComm, ...)
@@ -2961,8 +2962,7 @@ function HealComm:PLAYER_LOGIN()
 	self.eventFrame:UnregisterEvent("PLAYER_LOGIN")
 	self.eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 	self.eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-	self.eventFrame:RegisterEvent("PARTY_MEMBERS_CHANGED")
-	self.eventFrame:RegisterEvent("RAID_ROSTER_UPDATE")
+	self.eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 
 	self:ZONE_CHANGED_NEW_AREA()
 	self:RAID_ROSTER_UPDATE()

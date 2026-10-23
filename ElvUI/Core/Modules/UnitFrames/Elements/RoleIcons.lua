@@ -16,7 +16,7 @@ function UF:Construct_RoleIcon(frame)
 	tex.Override = UF.UpdateRoleIcon
 	frame:RegisterEvent("PARTY_MEMBER_ENABLE", UF.UpdateRoleIcon, true)
 	frame:RegisterEvent("PARTY_MEMBER_DISABLE", UF.UpdateRoleIcon, true)
-	frame:RegisterEvent("RAID_ROSTER_UPDATE", UF.UpdateRoleIcon, true)
+	frame:RegisterEvent("GROUP_ROSTER_UPDATE", UF.UpdateRoleIcon, true)
 
 	return tex
 end
@@ -37,8 +37,7 @@ function UF:UpdateRoleIcon(event)
 		return
 	end
 
-	local isTank, isHealer, isDamage = UnitGroupRolesAssigned(self.unit)
-	local role = isTank and "TANK" or isHealer and "HEALER" or isDamage and "DAMAGER" or "NONE"
+	local role = UnitGroupRolesAssigned(self.unit)
 	if role == "NONE" then
 		role = E.GroupRoles[UnitGUID(self.unit)] or "NONE"
 	end

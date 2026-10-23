@@ -54,15 +54,8 @@ S:AddCallbackForAddon("Blizzard_GMChatUI", "Skin_Blizzard_GMChatUI", function()
 		end
 	end)
 
-	local statusFrame = select(2, GMChatStatusFrame:GetChildren())
-	statusFrame:StripTextures()
-	statusFrame:CreateBackdrop("Transparent")
-	statusFrame.backdrop:Point("TOPLEFT", 0, 1)
-	statusFrame.backdrop:SetPoint("BOTTOMRIGHT", 0, 0)
-
-	GMChatStatusFramePulse:SetTexture([[Interface\GMChatFrame\UI-GMStatusFrame-Pulse]])
-	GMChatStatusFramePulse:Point("TOPLEFT", -25, 21)
-	GMChatStatusFramePulse:Point("BOTTOMRIGHT", 25, -19)
+	GMChatStatusFrameNineSlice:StripTextures()
+	GMChatStatusFrame:SetTemplate("Transparent")
 
 	GMChatStatusFrame:HookScript("OnShow", function(self)
 		if TicketStatusFrame and TicketStatusFrame:IsShown() then

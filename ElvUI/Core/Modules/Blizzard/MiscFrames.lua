@@ -6,11 +6,7 @@ local abs = abs
 local UnitIsUnit = UnitIsUnit
 local hooksecurefunc = hooksecurefunc
 
-local Minimap_SetPing = Minimap_SetPing
-
 local GetCVar = GetCVar
-
-local MINIMAPPING_FADE_TIMER = MINIMAPPING_FADE_TIMER
 
 do
 	local slider = _G.SpellOverlay_SpellHighlightAlphaSlider
@@ -38,13 +34,6 @@ local function Durability_SetPoint(frame, _, relativeTo)
 end
 
 function BL:HandleMiscFrames()
-	-- fix minimap ping
-	_G.MinimapPing:HookScript('OnUpdate', function(self)
-		if self.fadeOut or self.timer > MINIMAPPING_FADE_TIMER then
-			Minimap_SetPing(_G.Minimap:GetPingPosition())
-		end
-	end)
-
 	-- fix quest log frame level issues
 	_G.QuestLogFrame:HookScript('OnShow', function()
 		local questFrame = _G.QuestLogFrame:GetFrameLevel()
@@ -81,8 +70,8 @@ function BL:HandleMiscFrames()
 	Durability_SetPoint(durability)
 
 	-- kill the ui scale option
-	_G.VideoOptionsResolutionPanelUseUIScale:Kill()
-	_G.VideoOptionsResolutionPanelUIScaleSlider:Kill()
+	_G.Advanced_UseUIScale:Kill()
+	_G.Advanced_UIScaleSlider:Kill()
 
 	-- gm ticket status
 	_G.TicketStatusFrame:ClearAllPoints()

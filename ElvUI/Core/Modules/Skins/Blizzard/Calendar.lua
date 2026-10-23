@@ -253,4 +253,4 @@ local function LoadSkin()
 	S:HandleSirusScrollBar(CalendarViewEventDescriptionScrollFrameScrollBar)
 end
 
-S:AddCallback("Skin_Calendar", LoadSkin)
+S:AddCallbackForAddon("Blizzard_Calendar", "Skin_Calendar", LoadSkin)

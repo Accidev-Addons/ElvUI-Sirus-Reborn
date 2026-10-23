@@ -95,12 +95,15 @@ local function ScanSpellBook()
 	end
 
 	for slot = 1, max do
-		local spellName, rank = GetSpellName(slot, "spell")
-		if spellName then
-			local link = GetSpellLink(spellName, rank)
-			local spellID = link and GetSpellIDFromLink(link)
+		local spellType, spellID = GetSpellBookItemInfo(slot, "spell")
+		if spellType == "SPELL" then
+			local link = GetSpellLink(slot, "spell")
+			local linkID = link and GetSpellIDFromLink(link)
 			if spellID then
 				spellBookSlots[spellID] = slot
+			end
+			if linkID then
+				spellBookSlots[linkID] = slot
 			end
 		end
 	end

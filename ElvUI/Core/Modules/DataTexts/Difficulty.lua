@@ -3,10 +3,10 @@ local DT = E:GetModule('DataTexts')
 
 local _G = _G
 
-local GetDungeonDifficulty = GetDungeonDifficulty
-local GetRaidDifficulty = GetRaidDifficulty
-local SetDungeonDifficulty = SetDungeonDifficulty
-local SetRaidDifficulty = SetRaidDifficulty
+local GetDungeonDifficulty = GetDungeonDifficultyID
+local GetRaidDifficulty = GetRaidDifficultyID
+local SetDungeonDifficulty = SetDungeonDifficultyID
+local SetRaidDifficulty = SetRaidDifficultyID
 local GetInstanceInfo = GetInstanceInfo
 local GetZoneText = GetZoneText
 local ResetInstances = ResetInstances
@@ -21,10 +21,10 @@ local RightClickMenu = {
     { text = _G.DUNGEON_DIFFICULTY2, checked = function() return GetDungeonDifficulty() == 2 end, func = function() SetDungeonDifficulty(2) end },
     { text = '', isTitle = true, notCheckable = true },
     { text = _G.RAID_DIFFICULTY, isTitle = true, notCheckable = true},
-    { text = _G.RAID_DIFFICULTY1, checked = function() return GetRaidDifficulty() == 1 end, func = function() SetRaidDifficulty(1) end },
-    { text = _G.RAID_DIFFICULTY2, checked = function() return GetRaidDifficulty() == 2 end, func = function() SetRaidDifficulty(2) end },
-    { text = _G.RAID_DIFFICULTY3, checked = function() return GetRaidDifficulty() == 3 end, func = function() SetRaidDifficulty(3) end },
-    { text = _G.RAID_DIFFICULTY4, checked = function() return GetRaidDifficulty() == 4 end, func = function() SetRaidDifficulty(4) end },
+    { text = _G.RAID_DIFFICULTY1, checked = function() return GetRaidDifficulty() == 3 end, func = function() SetRaidDifficulty(3) end },
+    { text = _G.RAID_DIFFICULTY2, checked = function() return GetRaidDifficulty() == 4 end, func = function() SetRaidDifficulty(4) end },
+    { text = _G.RAID_DIFFICULTY3, checked = function() return GetRaidDifficulty() == 5 end, func = function() SetRaidDifficulty(5) end },
+    { text = _G.RAID_DIFFICULTY4, checked = function() return GetRaidDifficulty() == 6 end, func = function() SetRaidDifficulty(6) end },
     { text = '', isTitle = true, notCheckable = true },
     { text = _G.RESET_INSTANCES, notCheckable = true, func = function() ResetInstances()  end},
 }

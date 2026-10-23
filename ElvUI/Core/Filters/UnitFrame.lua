@@ -540,6 +540,7 @@ G.unitframe.buffwatch = {
 	},
 	HUNTER = {},
 	WARLOCK = {},
+	MONK = {},
 }
 
 -- Profile specific BuffIndicator

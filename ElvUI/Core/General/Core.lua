@@ -887,7 +887,7 @@ do
 
 	local SendRecieveGroupSize = 0
 	local function SendRecieve(_, event)
-		if event == 'PARTY_MEMBERS_CHANGED' or event == 'RAID_ROSTER_UPDATE' then
+		if event == 'GROUP_ROSTER_UPDATE' then
 			local num = GetNumGroupMembers()
 			if num ~= SendRecieveGroupSize then
 				if num > 1 and num > SendRecieveGroupSize then
@@ -905,8 +905,7 @@ do
 	end
 
 	local f = CreateFrame('Frame')
-	f:RegisterEvent('RAID_ROSTER_UPDATE')
-	f:RegisterEvent('PARTY_MEMBERS_CHANGED')
+	f:RegisterEvent('GROUP_ROSTER_UPDATE')
 	f:RegisterEvent('PLAYER_ENTERING_WORLD')
 	f:SetScript('OnEvent', SendRecieve)
 end

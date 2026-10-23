@@ -5169,37 +5169,6 @@ E.Options.args.unitframe.args.pet = {
 		castbar = GetOptionsTable_Castbar(false, UF.CreateAndUpdateUF, "pet"),
 		aurabar = GetOptionsTable_AuraBars(UF.CreateAndUpdateUF, "pet"),
 		cutaway = GetOptionsTable_Cutaway(UF.CreateAndUpdateUF, "pet"),
-		happiness = {
-			order = 700,
-			type = "group",
-			name = HAPPINESS,
-			get = function(info) return E.db.unitframe.units.pet.happiness[info[#info]] end,
-			set = function(info, value) E.db.unitframe.units.pet.happiness[info[#info]] = value; UF:CreateAndUpdateUF("pet") end,
-			disabled = E.myclass ~= "HUNTER",
-			args = {
-				header = {
-					order = 1,
-					type = "header",
-					name = L["HAPPINESS"]
-				},
-				enable = {
-					order = 2,
-					type = "toggle",
-					name = L["Enable"]
-				},
-				autoHide = {
-					order = 3,
-					type = "toggle",
-					name = L["Auto-Hide"]
-				},
-				width = {
-					order = 4,
-					type = "range",
-					name = L["Size"],
-					min = 5, max = 40, step = 1
-				}
-			}
-		}
 	}
 }
 

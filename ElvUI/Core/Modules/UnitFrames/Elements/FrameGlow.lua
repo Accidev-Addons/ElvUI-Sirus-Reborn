@@ -66,22 +66,12 @@ function UF:FrameGlow_ClassGlowPosition(frame, powerName, glow, offset, fromScri
 
 	local portrait = (frame.USE_PORTRAIT and not frame.USE_PORTRAIT_OVERLAY) and (frame.Portrait and frame.Portrait.backdrop)
 
-	if powerName == "HappinessIndicator" and (power and power.backdrop and power:IsVisible()) then
-		if frame.ORIENTATION == "RIGHT" then
-			glow:Point("TOPLEFT", power.backdrop, -offset, offset)
-			glow:Point("TOPRIGHT", portrait or frame.Health.backdrop, offset, offset)
-		else
-			glow:Point("TOPLEFT", portrait or frame.Health.backdrop, -offset, offset)
-			glow:Point("TOPRIGHT", power.backdrop, offset, offset)
-		end
-	else
-		if (power and power.backdrop and power:IsVisible()) and (not (frame.CLASSBAR_DETACHED or frame.USE_MINI_CLASSBAR)) then
-			glow:Point("TOPLEFT", (frame.ORIENTATION == "LEFT" and portrait) or power.backdrop, -offset, offset)
-			glow:Point("TOPRIGHT", (frame.ORIENTATION == "RIGHT" and portrait) or power.backdrop, offset, offset)
-		elseif frame.Health and frame.Health.backdrop then
-			glow:Point("TOPLEFT", (frame.ORIENTATION == "LEFT" and portrait) or frame.Health.backdrop, -offset, offset)
-			glow:Point("TOPRIGHT", (frame.ORIENTATION == "RIGHT" and portrait) or frame.Health.backdrop, offset, offset)
-		end
+	if (power and power.backdrop and power:IsVisible()) and (not (frame.CLASSBAR_DETACHED or frame.USE_MINI_CLASSBAR)) then
+		glow:Point("TOPLEFT", (frame.ORIENTATION == "LEFT" and portrait) or power.backdrop, -offset, offset)
+		glow:Point("TOPRIGHT", (frame.ORIENTATION == "RIGHT" and portrait) or power.backdrop, offset, offset)
+	elseif frame.Health and frame.Health.backdrop then
+		glow:Point("TOPLEFT", (frame.ORIENTATION == "LEFT" and portrait) or frame.Health.backdrop, -offset, offset)
+		glow:Point("TOPRIGHT", (frame.ORIENTATION == "RIGHT" and portrait) or frame.Health.backdrop, offset, offset)
 	end
 end
 
@@ -90,8 +80,8 @@ function UF:FrameGlow_PositionGlow(frame, mainGlow, powerGlow)
 
 	local additionalPower = frame.AdditionalPower
 	local runes = frame.Runes
+	local classPower = frame.ClassPower
 	local comboPoints = frame.ComboPoints
-	local happiness = frame.HappinessIndicator
 	local power = frame.Power and frame.Power.backdrop
 	local health = frame.Health and frame.Health.backdrop
 	local portrait = (frame.USE_PORTRAIT and not frame.USE_PORTRAIT_OVERLAY) and (frame.Portrait and frame.Portrait.backdrop)
@@ -122,10 +112,10 @@ function UF:FrameGlow_PositionGlow(frame, mainGlow, powerGlow)
 		UF:FrameGlow_ClassGlowPosition(frame, "AdditionalPower", mainGlow, offset)
 	elseif runes then
 		UF:FrameGlow_ClassGlowPosition(frame, "Runes", mainGlow, offset)
+	elseif classPower then
+		UF:FrameGlow_ClassGlowPosition(frame, "ClassPower", mainGlow, offset)
 	elseif comboPoints then
 		UF:FrameGlow_ClassGlowPosition(frame, "ComboPoints", mainGlow, offset)
-	elseif happiness then
-		UF:FrameGlow_ClassGlowPosition(frame, "HappinessIndicator", mainGlow, offset)
 	end
 end
 

@@ -12,7 +12,7 @@ local GetShapeshiftFormCooldown = GetShapeshiftFormCooldown
 local GetShapeshiftFormInfo = GetShapeshiftFormInfo
 local GetSpellTexture = GetSpellTexture
 local RegisterStateDriver = RegisterStateDriver
-local NUM_SHAPESHIFT_SLOTS = NUM_SHAPESHIFT_SLOTS
+local NUM_SHAPESHIFT_SLOTS = 10
 
 local Masque = E.Masque
 local MasqueGroup = Masque and Masque:Group('ElvUI', 'Stance Bar')
@@ -185,7 +185,7 @@ function AB:AdjustMaxStanceButtons(event)
 	local numButtons = GetNumShapeshiftForms()
 	for i = 1, NUM_SHAPESHIFT_SLOTS do
 		if not bar.buttons[i] then
-			bar.buttons[i] = CreateFrame('CheckButton', format(bar:GetName()..'Button%d', i), bar, 'ShapeshiftButtonTemplate')
+			bar.buttons[i] = CreateFrame('CheckButton', format(bar:GetName()..'Button%d', i), bar, 'StanceButtonTemplate')
 			bar.buttons[i]:SetID(i)
 			bar.buttons[i].parentName = 'ElvUI_StanceBar'
 
@@ -193,7 +193,7 @@ function AB:AdjustMaxStanceButtons(event)
 			AB:HookScript(bar.buttons[i], 'OnLeave', 'Button_OnLeave')
 		end
 
-		local blizz = _G[format('ShapeshiftButton%d', i)]
+		local blizz = _G[format('StanceButton%d', i)]
 		if blizz and blizz.commandName then
 			bar.buttons[i].commandName = blizz.commandName
 		end

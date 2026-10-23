@@ -11,12 +11,11 @@ local GetInventoryItemLink = GetInventoryItemLink
 local GetItemInfo = GetItemInfo
 local C_Timer = C_Timer
 local GetTalentTabInfo = GetTalentTabInfo
-local GLYPHTYPE_MAJOR = GLYPHTYPE_MAJOR
 
 local Slots = {
 	"HeadSlot", "NeckSlot", "ShoulderSlot", "BackSlot", "ChestSlot", "ShirtSlot", "TabardSlot", "WristSlot",
 	"HandsSlot", "WaistSlot", "LegsSlot", "FeetSlot", "Finger0Slot", "Finger1Slot", "Trinket0Slot", "Trinket1Slot",
-	"MainHandSlot", "SecondaryHandSlot", "RangedSlot"
+	"MainHandSlot", "SecondaryHandSlot"
 }
 
 local function LoadSkin()
@@ -31,7 +30,7 @@ local function LoadSkin()
 	InspectModelFrame:CreateBackdrop()
 	InspectModelFrame.backdrop:SetOutside(InspectModelFrameBackgroundOverlay)
 	InspectModelFrame:DisableDrawLayer("OVERLAY")
-	InspectItemLevelFrame.ilvlbackground:SetAlpha(0)
+	InspectItemLevelFrame.Background:SetAlpha(0)
 	InspectItemLevelFrame:Point("BOTTOM", InspectModelFrame, "BOTTOM", 0, 40)
 
 	if InspectPaperDollFrame.ViewButton then
@@ -118,18 +117,13 @@ local function LoadSkin()
 	local refreshTicker
 	local function WatchInspectData()
 		if refreshTicker then refreshTicker:Cancel() end
-		refreshTicker = C_Timer:NewTicker(0.2, RefreshChangedSlots, 25)
+		refreshTicker = C_Timer.NewTicker(0.2, RefreshChangedSlots, 25)
 	end
 
 	hooksecurefunc("InspectFrame_UnitChanged", WatchInspectData)
 	InspectFrame:HookScript("OnShow", WatchInspectData)
 
-	if InspectModelFrameControlFrameRotateLeftButton then
-		S:HandleRotateButton(InspectModelFrameControlFrameRotateLeftButton)
-	end
-	if InspectModelFrameControlFrameRotateRightButton then
-		S:HandleRotateButton(InspectModelFrameControlFrameRotateRightButton)
-	end
+	S:HandleControlFrame(InspectModelFrame.controlFrame)
 
 	InspectPVPFrame:StripTextures()
 
@@ -152,10 +146,7 @@ local function LoadSkin()
 	end
 
 	if pvpRating and pvpRating.Container then
-		for _, key in next, { "Background", "Divider" } do
-			local object = pvpRating.Container[key]
-			if object then object:Hide() end
-		end
+		pvpRating.Container.Background:Hide()
 	end
 
 	local statsScrollFrame = InspectBattlegroundStatisticsScrollFrame
@@ -198,7 +189,7 @@ local function LoadSkin()
 		S:HandleSirusScrollBar(scrollFrame.ScrollBar)
 
 		hooksecurefunc(ladder, "InitializeScrollFrame", function()
-			S:ApplyElvUIFont(scrollFrame.ScrollChild)
+			S:ApplyElvUIFont(scrollFrame.scrollChild)
 		end)
 
 		for i = 1, 4 do
@@ -216,17 +207,6 @@ local function LoadSkin()
 			ladder.TopContainer.StatisticsFrame.backdrop:Point("TOPLEFT", 3, -3)
 			ladder.TopContainer.StatisticsFrame.backdrop:Point("BOTTOMRIGHT", -3, 3)
 			S:ApplyElvUIFont(ladder.TopContainer)
-		end
-	end
-
-	for i = 1, MAX_ARENA_TEAMS do
-		local frame = _G["InspectPVPTeam" .. i]
-		if frame then
-			frame:StripTextures()
-			frame:CreateBackdrop("Transparent")
-			frame.backdrop:Point("TOPLEFT", 9, -6)
-			frame.backdrop:Point("BOTTOMRIGHT", -24, -5)
-			S:SetBackdropHitRect(frame)
 		end
 	end
 
@@ -282,7 +262,7 @@ local function LoadSkin()
 	S:CreateGlyphTreeArt(glyphFrame)
 
 	local function UpdateGlyphSocket(glyph)
-		S:UpdateGlyphSocket(glyph, glyph.glyphType == GLYPHTYPE_MAJOR, glyph.spell ~= nil, 0.79)
+		S:UpdateGlyphSocket(glyph, glyph.glyphType == 1, glyph.spell ~= nil, 0.79)
 	end
 
 	local glyphGlobes = {}
@@ -308,14 +288,6 @@ local function LoadSkin()
 		local guildBG = _G.InspectGuildFrameBG
 		if guildBG then guildBG:SetTexture() end
 	end
-
-	hooksecurefunc("InspectGuildFrame_Update", function()
-		local emblem = _G.InspectGuildFrameEmblem
-		if emblem then
-			emblem:SetTexture("Interface\\GuildFrame\\GuildEmblemsLG_01")
-			emblem:Show()
-		end
-	end)
 end
 
-S:AddCallback("Skin_Inspect", LoadSkin)
+S:AddCallbackForAddon("Blizzard_InspectUI", "Skin_Inspect", LoadSkin)

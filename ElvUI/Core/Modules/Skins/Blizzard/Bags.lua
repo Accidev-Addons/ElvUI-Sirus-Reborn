@@ -208,12 +208,6 @@ S:AddCallback("Skin_Bags", function()
 			searchBox:Point("TOPLEFT", self, "TOPLEFT", 10, -44)
 			searchBox:Width(BAG_WIDTH - 44)
 		end
-
-		local keyRingFrame = _G.BagKeyRingFrame
-		if keyRingFrame:GetParent() == self then
-			keyRingFrame:ClearAllPoints()
-			keyRingFrame:Point("TOPRIGHT", self, "TOPRIGHT", -8, -42)
-		end
 	end
 
 	for i = 1, NUM_CONTAINER_FRAMES do
@@ -291,21 +285,6 @@ S:AddCallback("Skin_Bags", function()
 		S:HandleEditBox(_G.BagItemSearchBox, nil, true)
 	end
 
-	local keyRing = _G.KeyRingButton
-	if keyRing then
-		_G.BagKeyRingFrame:Size(22)
-		keyRing:Size(22)
-		keyRing:SetTemplate()
-		keyRing:StyleButton()
-
-		if keyRing.IconBorder then
-			keyRing.IconBorder:Hide()
-		end
-
-		keyRing.Icon:SetTexCoords()
-		keyRing.Icon:SetInside()
-	end
-
 	BackpackTokenFrame:StripTextures()
 
 	for i = 1, MAX_WATCHED_TOKENS do
@@ -337,7 +316,6 @@ S:AddCallback("Skin_Bags", function()
 	end
 
 	local bagIconCache = {
-		[-2] = [[Interface\ContainerFrame\KeyRing-Bag-Icon]],
 		[0] = [[Interface\Buttons\Button-Backpack-Up]]
 	}
 
@@ -457,7 +435,7 @@ S:AddCallback("Skin_Bags", function()
 	for i = 1, NUM_BANKBAGSLOTS do
 		local button = _G["BankFrameBag"..i]
 		local icon = _G["BankFrameBag"..i.."IconTexture"]
-		local highlight = _G["BankFrameBag"..i.."HighlightFrameTexture"]
+		local highlight = button.SlotHighlightTexture
 
 		button:SetNormalTexture(nil)
 		button:SetTemplate("Default", true)

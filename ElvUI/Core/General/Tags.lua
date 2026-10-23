@@ -16,7 +16,6 @@ local GetQuestDifficultyColor = GetQuestDifficultyColor
 local GetCurrentTitle = GetCurrentTitle
 local GetGuildInfo = GetGuildInfo
 local GetInstanceInfo = GetInstanceInfo
-local GetPVPRankInfo = GetPVPRankInfo
 local GetPVPTimer = GetPVPTimer
 local GetRaidRosterInfo = GetRaidRosterInfo
 local GetRuneCooldown = GetRuneCooldown
@@ -44,7 +43,6 @@ local UnitLevel = UnitLevel
 local UnitPowerMax = UnitPowerMax
 local UnitPowerType = UnitPowerType
 local UnitPVPName = UnitPVPName
-local UnitPVPRank = UnitPVPRank
 local UnitReaction = UnitReaction
 local UnitSex = UnitSex
 
@@ -201,7 +199,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 		return E:GetFormattedText(textFormat, UnitHealth(unit), UnitHealthMax(unit))
 	end)
 
-	E:AddTag(format('power:%s', tagFormat), 'UNIT_MAXENERGY UNIT_MAXFOCUS UNIT_MAXMANA UNIT_MAXRAGE UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_MAXRUNIC_POWER UNIT_RUNIC_POWER', function(unit)
+	E:AddTag(format('power:%s', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 		local powerType = UnitPowerType(unit)
 		local min = UnitPower(unit, powerType)
 		if min ~= 0 or tagFormat == 'deficit' then
@@ -209,7 +207,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 		end
 	end)
 
-	E:AddTag(format('mana:%s', tagFormat), 'UNIT_MANA UNIT_MAXMANA', function(unit)
+	E:AddTag(format('mana:%s', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 		local min = UnitPower(unit, SPELL_POWER_MANA)
 		if min ~= 0 or tagFormat == 'deficit' then
 			return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, SPELL_POWER_MANA))
@@ -240,7 +238,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 			return E:GetFormattedText(textFormat, min, max, nil, true)
 		end)
 
-		E:AddTag(format('power:%s:shortvalue', tagFormat), 'UNIT_MAXENERGY UNIT_MAXFOCUS UNIT_MAXMANA UNIT_MAXRAGE UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_MAXRUNIC_POWER UNIT_RUNIC_POWER', function(unit)
+		E:AddTag(format('power:%s:shortvalue', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 			local powerType = UnitPowerType(unit)
 			local min = UnitPower(unit, powerType)
 			if min ~= 0 or tagFormat == 'deficit' then
@@ -248,7 +246,7 @@ for textFormat in pairs(E.GetFormattedTextStyles) do
 			end
 		end)
 
-		E:AddTag(format('mana:%s:shortvalue', tagFormat), 'UNIT_MANA UNIT_MAXMANA', function(unit)
+		E:AddTag(format('mana:%s:shortvalue', tagFormat), 'UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
 			local min = UnitPower(unit, SPELL_POWER_MANA)
 			if min ~= 0 or tagFormat == 'deficit' then
 				return E:GetFormattedText(textFormat, min, UnitPowerMax(unit, SPELL_POWER_MANA), nil, true)
@@ -431,7 +429,7 @@ E:AddTag('power:max:shortvalue', 'UNIT_DISPLAYPOWER UNIT_MAXPOWER', function(uni
 	return E:GetFormattedText('CURRENT', max, max, nil, true)
 end)
 
-E:AddTag('mana:max', 'UNIT_MAXMANA', function(unit)
+E:AddTag('mana:max', 'UNIT_MAXPOWER', function(unit)
 	local max = UnitPowerMax(unit, SPELL_POWER_MANA)
 
 	return E:GetFormattedText('CURRENT', max, max)
@@ -522,21 +520,21 @@ E:AddTag('realm:dash:translit', 'UNIT_NAME_UPDATE', function(unit)
 	end
 end)
 
-E:AddTag('threat:percent', 'UNIT_THREAT_LIST_UPDATE UNIT_THREAT_SITUATION_UPDATE RAID_ROSTER_UPDATE', function(unit)
+E:AddTag('threat:percent', 'UNIT_THREAT_LIST_UPDATE UNIT_THREAT_SITUATION_UPDATE GROUP_ROSTER_UPDATE', function(unit)
 	local _, _, percent = UnitDetailedThreatSituation('player', unit)
 	if percent and percent > 0 then
 		return format('%.0f%%', percent)
 	end
 end)
 
-E:AddTag('threat:current', 'UNIT_THREAT_LIST_UPDATE UNIT_THREAT_SITUATION_UPDATE RAID_ROSTER_UPDATE', function(unit)
+E:AddTag('threat:current', 'UNIT_THREAT_LIST_UPDATE UNIT_THREAT_SITUATION_UPDATE GROUP_ROSTER_UPDATE', function(unit)
 	local _, _, percent, _, threatvalue = UnitDetailedThreatSituation('player', unit)
 	if percent and percent > 0 and threatvalue then
 		return E:ShortValue(threatvalue)
 	end
 end)
 
-E:AddTag('threatcolor', 'UNIT_THREAT_LIST_UPDATE UNIT_THREAT_SITUATION_UPDATE RAID_ROSTER_UPDATE', function(unit)
+E:AddTag('threatcolor', 'UNIT_THREAT_LIST_UPDATE UNIT_THREAT_SITUATION_UPDATE GROUP_ROSTER_UPDATE', function(unit)
 	local _, status = UnitDetailedThreatSituation('player', unit)
 	if status then
 		return Hex(E:GetThreatStatusColor(status, true))
@@ -624,7 +622,7 @@ E:AddTag('guild', 'UNIT_NAME_UPDATE PLAYER_GUILD_UPDATE', function(unit)
 	end
 end)
 
-E:AddTag('group:raid', 'RAID_ROSTER_UPDATE', function(unit)
+E:AddTag('group:raid', 'GROUP_ROSTER_UPDATE', function(unit)
 	if IsInRaid() then
 		local name, realm = UnitName(unit)
 		if name then
@@ -1038,6 +1036,7 @@ do
 		WARLOCK		= '192:256:64:128',
 		PALADIN		= '0:64:128:192',
 		DEATHKNIGHT = '64:128:128:192',
+		MONK		= '128:192:128:192',
 	}
 
 	E:AddTag('class:icon', 'PLAYER_TARGET_CHANGED', function(unit)
@@ -1081,60 +1080,12 @@ E:AddTag('specialization', 'PLAYER_TALENT_UPDATE ACTIVE_TALENT_GROUP_CHANGED CHA
 	return _TAGS.spec(unit)
 end)
 
-local GetPetHappiness = GetPetHappiness
 local GetPetFoodTypes = GetPetFoodTypes
 
-local emotionsDiscord = {
-	E:TextureString(E.Media.ChatEmojis.Rage, ':16:16:0:0:32:32:0:32:0:32'),
-	E:TextureString(E.Media.ChatEmojis.SlightFrown, ':16:16:0:0:32:32:0:32:0:32'),
-	E:TextureString(E.Media.ChatEmojis.HeartEyes, ':16:16:0:0:32:32:0:32:0:32')
-}
-
-E:AddTag('happiness:full', 'UNIT_HAPPINESS PET_UI_UPDATE', function(unit)
-	local hasPetUI, isHunterPet = HasPetUI()
-	if hasPetUI and isHunterPet and UnitIsUnit('pet', unit) then
-		return _G['PET_HAPPINESS'..GetPetHappiness()]
-	end
-end)
-
-E:AddTag('happiness:discord', 'UNIT_HAPPINESS PET_UI_UPDATE', function(unit)
-	local hasPetUI, isHunterPet = HasPetUI()
-	if hasPetUI and isHunterPet and UnitIsUnit('pet', unit) then
-		return emotionsDiscord[GetPetHappiness()]
-	end
-end)
-
-E:AddTag('happiness:color', 'UNIT_HAPPINESS PET_UI_UPDATE', function(unit)
-	local hasPetUI, isHunterPet = HasPetUI()
-	if hasPetUI and isHunterPet and UnitIsUnit('pet', unit) then
-		return Hex(_COLORS.happiness[GetPetHappiness()])
-	end
-end)
-
-E:AddTag('diet', 'UNIT_HAPPINESS PET_UI_UPDATE', function(unit)
+E:AddTag('diet', 'PET_UI_UPDATE', function(unit)
 	local hasPetUI, isHunterPet = HasPetUI()
 	if hasPetUI and isHunterPet and UnitIsUnit('pet', unit) then
 		return GetPetFoodTypes()
-	end
-end)
-
-E:AddTag('pvp:title', 'UNIT_NAME_UPDATE', function(unit)
-	if UnitIsPlayer(unit) then
-		local rank = UnitPVPRank(unit)
-		local title = GetPVPRankInfo(rank, unit)
-
-		return title
-	end
-end)
-
-E:AddTag('pvp:rank', 'UNIT_NAME_UPDATE', function(unit)
-	if UnitIsPlayer(unit) then
-		local rank = UnitPVPRank(unit)
-		local _, num = GetPVPRankInfo(rank, unit)
-
-		if num > 0 then
-			return num
-		end
 	end
 end)
 
@@ -1234,7 +1185,6 @@ E.TagInfo = {
 		['factioncolor'] = { category = L["Colors"], description = L["Colors names by Faction (Alliance, Horde, Neutral)"] },
 		['reactioncolor'] = { category = L["Colors"], description = L["Colors names by NPC reaction (Bad/Neutral/Good)"] },
 		['threatcolor'] = { category = L["Colors"], description = L["Changes the text color, depending on the unit's threat situation"] },
-		['happiness:color'] = { category = L["Colors"], description = L["Changes the text color, depending on the pet happiness"] },
 	-- Guild
 		['guild:brackets:translit'] = { category = L["Guild"], description = L["Displays the guild name with < > and transliteration (e.g. <GUILD>)"] },
 		['guild:brackets'] = { category = L["Guild"], description = L["Displays the guild name with < > brackets (e.g. <GUILD>)"] },
@@ -1282,9 +1232,6 @@ E.TagInfo = {
 		['perhp'] = { category = L["Health"], description = L["Displays percentage HP without decimals or the % sign. You can display the percent sign by adjusting the tag to [perhp<%]."] },
 	--Hunter
 		['diet'] = { category = L["Hunter"], description = L["Displays the diet of your pet (Fish, Meat, ...)"] },
-		['happiness:discord'] = { category = L["Hunter"], description = L["Displays the pet happiness like a Discord emoji"] },
-		['happiness:full'] = { category = L["Hunter"], description = L["Displays the pet happiness as a word (e.g. 'Happy')"] },
-		['happiness:icon'] = { category = L["Hunter"], description = L["Displays the pet happiness like the default Blizzard icon"] },
 	-- Level
 		['level'] = { category = L["Level"], description = L["Displays the level of the unit"] },
 		['smartlevel'] = { category = L["Level"], description = L["Only display the unit's level if it is not the same as yours"] },
@@ -1362,8 +1309,6 @@ E.TagInfo = {
 		['pvp'] = { category = L["PvP"], description = L["Displays 'PvP' if the unit is pvp flagged"] },
 		['pvptimer'] = { category = L["PvP"], description = L["Displays remaining time on pvp-flagged status"] },
 		['pvp:icon'] = { category = L["PvP"], description = L["Displays player pvp rank icon"] },
-		['pvp:rank'] = { category = L["PvP"], description = L["Displays player pvp rank number"] },
-		['pvp:title'] = { category = L["PvP"], description = L["Displays player pvp title"] },
 	-- Range
 		['distance'] = { category = L["Range"], description = L["Displays the distance"] },
 		['nearbyplayers:4'] = { category = L["Range"], description = L["Displays all players within 4 yards"] },

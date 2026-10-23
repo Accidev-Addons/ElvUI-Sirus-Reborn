@@ -2,149 +2,222 @@ local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule("Skins")
 
 local _G = _G
-local CanQueueForWintergrasp = CanQueueForWintergrasp
+local unpack = unpack
+local hooksecurefunc = hooksecurefunc
 
-S:AddCallback("Skin_PvP", function()
+local function StyleButton(button, icon)
+	button:StripTextures()
+	button:SetTemplate("Default", true)
+	button:StyleButton()
+
+	button:GetHighlightTexture():SetTexture(1, 1, 1, 0.1)
+	button:GetHighlightTexture():SetInside()
+
+	button.SelectedTexture:SetAlpha(0)
+
+	hooksecurefunc(button.SelectedTexture, "Show", function()
+		button:SetBackdropBorderColor(unpack(E.media.rgbvaluecolor))
+	end)
+	hooksecurefunc(button.SelectedTexture, "Hide", function()
+		button:SetBackdropBorderColor(unpack(E.media.bordercolor))
+	end)
+
+	if icon then
+		button.Icon:ClearAllPoints()
+		button.Icon:Point("LEFT", 10, 0)
+		button.Icon:SetTexCoord(unpack(E.TexCoords))
+		button.Icon:CreateBackdrop()
+		button.Icon:SetParent(button.Icon.backdrop)
+		button.Icon.backdrop:SetFrameLevel(button:GetFrameLevel() + 2)
+	end
+end
+
+local function StyleRewardFrame(frame)
+	frame.CurrencyReward:StripTextures()
+	frame.CurrencyReward:SetTemplate()
+	frame.LootReward.Background:SetAlpha(0)
+end
+
+local function SkinCapBar(capBar)
+	capBar:StripTextures()
+
+	local bar = capBar.StatusBar
+	bar:CreateBackdrop()
+	bar:SetStatusBarTexture(E.media.normTex)
+	E:RegisterStatusBar(bar)
+	bar.Left:Kill()
+	bar.Right:Kill()
+	bar.Middle:Kill()
+	bar.Background:Kill()
+
+	hooksecurefunc(bar, "SetValue", function(self, value)
+		local _, maxValue = self:GetMinMaxValues()
+		S:StatusBarColorGradient(self, value, maxValue)
+	end)
+end
+
+local function SkinStepBar(stepBar)
+	stepBar:StripTextures()
+	stepBar:CreateBackdrop()
+	stepBar.backdrop:SetInside(stepBar.ShadowOverlay)
+	stepBar.ShadowOverlay:StripTextures()
+end
+
+S:AddCallbackForAddon("Blizzard_PVPUI", "Skin_PvP", function()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.pvp then return end
 
-	PVPParentFrame:CreateBackdrop("Transparent")
-	PVPParentFrame.backdrop:Point("TOPLEFT", 11, -12)
-	PVPParentFrame.backdrop:Point("BOTTOMRIGHT", -32, 76)
-
-	S:SetUIPanelWindowInfo(PVPParentFrame, "width")
-	S:SetBackdropHitRect(PVPParentFrame)
-	S:SetBackdropHitRect(PVPFrame, PVPParentFrame.backdrop)
-	S:SetBackdropHitRect(PVPBattlegroundFrame, PVPParentFrame.backdrop)
-
-	S:HandleCloseButton(PVPParentFrameCloseButton, PVPParentFrame.backdrop)
-
-	S:HandleSirusTab(PVPParentFrameTab1)
-	S:HandleSirusTab(PVPParentFrameTab2, PVPParentFrameTab1)
-
-	PVPFrame:StripTextures(true)
-
-	for i = 1, MAX_ARENA_TEAMS do
-		local pvpTeam = _G["PVPTeam"..i]
-		pvpTeam:StripTextures()
-		pvpTeam:CreateBackdrop("Default")
-		pvpTeam.backdrop:Point("TOPLEFT", 9, -4)
-		pvpTeam.backdrop:Point("BOTTOMRIGHT", -24, 3)
-		S:SetBackdropHitRect(pvpTeam)
-
-		pvpTeam:HookScript("OnEnter", S.SetModifiedBackdrop)
-		pvpTeam:HookScript("OnLeave", S.SetOriginalBackdrop)
-
-		_G["PVPTeam"..i.."Highlight"]:Kill()
+	for i = 1, 3 do
+		local b = PVPQueueFrame["CategoryButton"..i]
+		b.Ring:Kill()
+		b.Background:Kill()
+		S:HandleButton(b)
+		b.Icon:Size(45)
+		b.Icon:ClearAllPoints()
+		b.Icon:Point("LEFT", 10, 0)
+		b.Icon:SetTexCoord(unpack(E.TexCoords))
+		b.Icon:CreateBackdrop()
+		b.Icon:SetParent(b.Icon.backdrop)
+		b.Icon.backdrop:SetFrameLevel(b:GetFrameLevel() + 2)
 	end
 
-	PVPTeamDetails:StripTextures()
-	PVPTeamDetails:SetTemplate("Transparent")
-	PVPTeamDetails:Point("TOPLEFT", PVPFrame, "TOPRIGHT", -33, -81)
+	local battlePassButton = PVPQueueFrame.BattlePassToggleButton
+	battlePassButton.Ring:Kill()
+	battlePassButton.Background:Kill()
+	S:HandleButton(battlePassButton)
+	battlePassButton.Icon:Size(45)
+	battlePassButton.Icon:ClearAllPoints()
+	battlePassButton.Icon:Point("LEFT", 10, 0)
+	battlePassButton.Icon:SetTexCoord(0.15, .85, .15, .85)
+	battlePassButton.Icon:CreateBackdrop()
+	battlePassButton.Icon:SetParent(battlePassButton.Icon.backdrop)
+	battlePassButton.Name:SetParent(battlePassButton.Icon.backdrop)
+	battlePassButton.Icon.backdrop:SetFrameLevel(battlePassButton:GetFrameLevel() + 2)
+	battlePassButton.LevelFrame:SetFrameLevel(battlePassButton:GetFrameLevel() + 3)
 
-	S:HandleCloseButton(PVPTeamDetailsCloseButton, PVPTeamDetails)
+	SkinCapBar(HonorFrame.CapBar)
+	SkinCapBar(ConquestFrame.CapBar)
+	SkinStepBar(HonorFrame.StepBar)
+	SkinStepBar(ConquestFrame.StepBar)
 
-	for i = 1, 5 do
-		_G["PVPTeamDetailsFrameColumnHeader"..i]:StripTextures()
+	HonorFrame.RoleInset:StripTextures()
+	for _, roleButton in next, { HonorFrame.RoleInset.TankIcon, HonorFrame.RoleInset.HealerIcon, HonorFrame.RoleInset.DPSIcon } do
+		S:HandleCheckBox(roleButton.checkButton)
 	end
 
-	for i = 1, MAX_ARENA_TEAM_MEMBERS do
-		S:HandleButtonHighlight(_G["PVPTeamDetailsButton"..i])
-	end
+	S:HandleButton(HonorFrame.SoloQueueButton, true)
+	S:HandleButton(HonorFrame.GroupQueueButton, true)
 
-	S:HandleButton(PVPTeamDetailsAddTeamMember)
-	S:HandleNextPrevButton(PVPTeamDetailsToggleButton)
+	HonorFrame.Inset:StripTextures()
+	S:HandleCheckBox(HonorFrameBonusRadioButton)
+	S:HandleCheckBox(HonorFrameSpecificRadioButton)
 
-	PVPTeamDetailsAddTeamMember:Point("TOPLEFT", PVPTeamDetailsButton10, "BOTTOMLEFT", 5, -8)
-	PVPTeamDetailsToggleButton:Point("BOTTOMRIGHT", -20, 25)
+	S:HandleDropDownBox(HonorFrameTypeDropDown)
 
-	PVPBattlegroundFrame:StripTextures(true)
+	local BonusFrame = HonorFrame.BonusFrame
+	BonusFrame:StripTextures()
+	BonusFrame.ShadowOverlay:StripTextures()
 
-	PVPBattlegroundFrameTypeScrollFrame:StripTextures()
-	S:HandleSirusScrollBar(PVPBattlegroundFrameTypeScrollFrameScrollBar)
+	StyleRewardFrame(BonusFrame.BattlegroundRewardFrame)
+	StyleRewardFrame(BonusFrame.WorldPVPRewardFrame)
 
-	PVPBattlegroundFrameInfoScrollFrame:StripTextures()
-	S:HandleSirusScrollBar(PVPBattlegroundFrameInfoScrollFrameScrollBar)
+	StyleButton(BonusFrame.RandomBGButton)
+	StyleButton(BonusFrame.CallToArmsButton)
+	StyleButton(BonusFrame.WorldPVP1Button)
+	StyleButton(BonusFrame.WorldPVP2Button)
 
-	S:HandleButton(PVPBattlegroundFrameGroupJoinButton)
-	S:HandleButton(PVPBattlegroundFrameJoinButton)
-	S:HandleButton(PVPBattlegroundFrameCancelButton)
+	HonorFrameSpecificFrame:StripTextures()
+	S:HandleSirusScrollBar(HonorFrameSpecificFrameScrollBar)
 
-	for i = 1, 5 do
-		S:HandleButtonHighlight(_G["BattlegroundType"..i])
-	end
-
-	PVPBattlegroundFrameInfoScrollFrameChildFrameDescription:SetTextColor(1, 1, 1)
-	PVPBattlegroundFrameInfoScrollFrameChildFrameRewardsInfo.description:SetTextColor(1, 1, 1)
-
-	PVPBattlegroundFrameTypeScrollFrameScrollBar:Point("TOPLEFT", PVPBattlegroundFrameTypeScrollFrame, "TOPRIGHT", 6, -19)
-	PVPBattlegroundFrameTypeScrollFrameScrollBar:Point("BOTTOMLEFT", PVPBattlegroundFrameTypeScrollFrame, "BOTTOMRIGHT", 6, 19)
-
-	PVPBattlegroundFrameInfoScrollFrame:Point("BOTTOMLEFT", 19, 114)
-
-	PVPBattlegroundFrameInfoScrollFrameScrollBar:Point("TOPLEFT", PVPBattlegroundFrameInfoScrollFrame, "TOPRIGHT", 7, -24)
-	PVPBattlegroundFrameInfoScrollFrameScrollBar:Point("BOTTOMLEFT", PVPBattlegroundFrameInfoScrollFrame, "BOTTOMRIGHT", 7, 19)
-
-	PVPBattlegroundFrameGroupJoinButton:Width(127)
-	PVPBattlegroundFrameCancelButton:Point("CENTER", PVPBattlegroundFrame, "TOPLEFT", 300, -416)
-	PVPBattlegroundFrameJoinButton:Point("RIGHT", PVPBattlegroundFrameCancelButton, "LEFT", -3, 0)
-	PVPBattlegroundFrameGroupJoinButton:Point("RIGHT", PVPBattlegroundFrameJoinButton, "LEFT", -3, 0)
-
-	WintergraspTimer:Size(24)
-	WintergraspTimer:SetTemplate("Default")
-	WintergraspTimer:Point("RIGHT", PVPBattlegroundFrame, "TOPRIGHT", -42, -58)
-
-	WintergraspTimer.texture:SetDrawLayer("ARTWORK")
-	WintergraspTimer.texture:SetInside()
-
-	WintergraspTimer:HookScript("OnUpdate", function(self)
-		if CanQueueForWintergrasp() then
-			self.texture:SetTexCoord(0.1875, 0.8125, 0.59375, 0.90625)
+	for i = 1, #HonorFrameSpecificFrame.buttons do
+		local button = HonorFrameSpecificFrame.buttons[i]
+		button:Width(309)
+		if i == 1 then
+			button:SetPoint("TOPLEFT", HonorFrameSpecificFrame.scrollChild, "TOPLEFT", E.Border, -E.Border)
 		else
-			self.texture:SetTexCoord(0.1875, 0.8125, 0.09375, 0.40625)
+			button:SetPoint("TOPLEFT", HonorFrameSpecificFrame.buttons[i - 1], "BOTTOMLEFT", 0, -E.Border)
+		end
+
+		StyleButton(button, true)
+	end
+
+	HonorFrameSpecificFrame.buttonHeight = HonorFrameSpecificFrame.buttonHeight - 4
+	HonorFrameSpecificFrame.scrollChild:SetHeight(#HonorFrameSpecificFrame.buttons * HonorFrameSpecificFrame.buttonHeight)
+	HonorFrameSpecificFrame.scrollBar:SetMinMaxValues(0, #HonorFrameSpecificFrame.buttons * HonorFrameSpecificFrame.buttonHeight)
+
+	local BottomInset = ConquestFrame.BottomInset
+	BottomInset:StripTextures()
+	BottomInset.ShadowOverlay:StripTextures()
+
+	S:HandleCheckBox(ConquestFrameBottomInsetRatedRadioButton)
+	S:HandleCheckBox(ConquestFrameBottomInsetSkirmishRadioButton)
+
+	BottomInset.RatedContainer:StripTextures()
+	BottomInset.RatedContainer.Header:StripTextures()
+	StyleRewardFrame(BottomInset.RatedContainer.Header.Reward)
+
+	StyleButton(BottomInset.RatedContainer.Arena2v2)
+	BottomInset.RatedContainer.Arena2v2:Point("TOP", BottomInset.RatedContainer.Header, "BOTTOM", 0, 10)
+	StyleButton(BottomInset.RatedContainer.Arena1v1)
+	BottomInset.RatedContainer.Arena1v1:Point("TOP", BottomInset.RatedContainer.Arena2v2, "BOTTOM", 0, -(E.Border * 2))
+
+	BottomInset.SoloContainer:StripTextures()
+	BottomInset.SoloContainer.Header:StripTextures()
+	StyleRewardFrame(BottomInset.SoloContainer.Header.Reward)
+
+	StyleButton(BottomInset.SoloContainer.ArenaSolo)
+
+	BottomInset.SkirmishContainer:StripTextures()
+	BottomInset.SkirmishContainer.Header:StripTextures()
+	StyleRewardFrame(BottomInset.SkirmishContainer.Header.Reward)
+
+	StyleButton(BottomInset.SkirmishContainer.Skirmish2v2)
+	StyleButton(BottomInset.SkirmishContainer.Skirmish1v1)
+
+	S:HandleButton(ConquestFrame.JoinButton, true)
+
+	RatedBattlegroundFrame.Inset:StripTextures()
+	RatedBattlegroundFrame.Container:StripTextures()
+
+	local progressBar = RatedBattlegroundFrame.Container.ProgressBar
+	progressBar:CreateBackdrop()
+	progressBar.Progress:SetTexture(E.media.normTex)
+	E:RegisterStatusBar(progressBar.Progress)
+	progressBar.backdrop:Point("TOPLEFT", progressBar.Progress, -1, 1)
+	progressBar.backdrop:Point("BOTTOMRIGHT", progressBar.Background, -21, 0)
+	progressBar.Frame:Kill()
+	progressBar.Level:SetPoint("CENTER", 0, 1)
+	progressBar.Background:Kill()
+
+	RatedBattlegroundStatisticsScrollFrame:StripTextures()
+	S:HandleSirusScrollBar(RatedBattlegroundStatisticsScrollFrameScrollBar)
+
+	RatedBattlegroundStatisticsScrollFrame:HookScript("OnShow", function()
+		for i = 1, #RatedBattlegroundStatisticsScrollFrame.buttons do
+			local button = RatedBattlegroundStatisticsScrollFrame.buttons[i]
+			if not button.isSkinned then
+				button:SetTemplate("Transparent")
+
+				button.Background:SetDrawLayer("BORDER")
+				button.Background:SetInside()
+				button.Background:SetGradientAlpha("HORIZONTAL", 0, 0, 0, 0, 1, 1, 1, 1)
+
+				S:HandleSirusToggle(button.TogglePlus, E.Media.Textures.Plus)
+				S:HandleSirusToggle(button.ToggleMinus, E.Media.Textures.Minus)
+
+				button.isSkinned = true
+			end
 		end
 	end)
 
-	BattlefieldFrame:StripTextures(true)
-	BattlefieldFrame:CreateBackdrop("Transparent")
-	BattlefieldFrame.backdrop:Point("TOPLEFT", 11, -12)
-	BattlefieldFrame.backdrop:Point("BOTTOMRIGHT", -32, 76)
+	S:HandleButton(RatedBattlegroundFrame.StatisticsButton, true)
 
-	S:SetUIPanelWindowInfo(BattlefieldFrame, "width")
-	S:SetBackdropHitRect(BattlefieldFrame)
+	WarGamesFrame.RightInset:StripTextures()
+	WarGamesFrame.HorizontalBar:StripTextures()
+	S:HandleSirusScrollBar(WarGamesFrameScrollFrameScrollBar)
+	S:HandleSirusScrollBar(WarGamesFrameInfoScrollFrameScrollBar)
+	S:HandleButton(WarGameStartButton, true)
 
-	S:HandleCloseButton(BattlefieldFrameCloseButton, BattlefieldFrame.backdrop)
-
-	BattlefieldListScrollFrame:StripTextures()
-	S:HandleSirusScrollBar(BattlefieldListScrollFrameScrollBar)
-	S:HandleSirusScrollBar(BattlefieldFrameInfoScrollFrameScrollBar)
-
-	BattlefieldFrameInfoScrollFrameChildFrameDescription:SetTextColor(1, 1, 1)
-	BattlefieldFrameInfoScrollFrameChildFrameRewardsInfoDescription:SetTextColor(1, 1, 1)
-
-	S:HandleButton(BattlefieldFrameGroupJoinButton)
-	S:HandleButton(BattlefieldFrameJoinButton)
-	S:HandleButton(BattlefieldFrameCancelButton)
-
-	for i = 1, BATTLEFIELD_ZONES_DISPLAYED do
-		S:HandleButtonHighlight(_G["BattlefieldZone"..i])
-	end
-
-	BattlefieldFrameNameHeader:Point("TOPLEFT", 73, -57)
-
-	BattlefieldZone1:Point("TOPLEFT", 25, -80)
-
-	BattlefieldListScrollFrameScrollBar:Point("TOPLEFT", BattlefieldListScrollFrame, "TOPRIGHT", 9, -23)
-	BattlefieldListScrollFrameScrollBar:Point("BOTTOMLEFT", BattlefieldListScrollFrame, "BOTTOMRIGHT", 9, 23)
-
-	BattlefieldFrameInfoScrollFrame:Point("BOTTOMLEFT", 21, 113)
-
-	BattlefieldFrameInfoScrollFrameScrollBar:Point("TOPLEFT", BattlefieldFrameInfoScrollFrame, "TOPRIGHT", 7, -20)
-	BattlefieldFrameInfoScrollFrameScrollBar:Point("BOTTOMLEFT", BattlefieldFrameInfoScrollFrame, "BOTTOMRIGHT", 7, 19)
-
-	BattlefieldFrameGroupJoinButton:Width(127)
-	BattlefieldFrameGroupJoinButton:Point("RIGHT", BattlefieldFrameJoinButton, "LEFT", -3, 0)
-	BattlefieldFrameJoinButton:Point("RIGHT", BattlefieldFrameCancelButton, "LEFT", -3, 0)
-	BattlefieldFrameCancelButton:Point("CENTER", BattlefieldFrame, "TOPLEFT", 302, -417)
+	ConquestTooltip:SetTemplate("Transparent")
 end)
 S:AddCallback("Skin_BattlegroundInvite", function()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.pvp then return end

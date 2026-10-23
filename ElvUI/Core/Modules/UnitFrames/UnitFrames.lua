@@ -46,7 +46,8 @@ UF.badHeaderPoints = {
 UF.headerFunctions = {}
 UF.classMaxResourceBar = {
 	["DEATHKNIGHT"] = 6,
-	["DRUID"] = 1
+	["DRUID"] = 1,
+	["MONK"] = 6
 }
 
 UF.instanceMapIDs = {
@@ -1277,6 +1278,10 @@ function ElvUF:DisableBlizzard(unit)
 		PlayerFrame:RegisterEvent("UNIT_ENTERED_VEHICLE")
 		PlayerFrame:RegisterEvent("UNIT_EXITING_VEHICLE")
 		PlayerFrame:RegisterEvent("UNIT_EXITED_VEHICLE")
+
+		for _, bar in pairs({PlayerFrameAlternateManaBar, MonkStaggerBar, MonkHarmonyBar, PaladinPowerBar, EclipseBarFrame, ShardBarFrame, PriestBarFrame}) do
+			bar:UnregisterAllEvents()
+		end
 
 		RuneFrame:SetParent(PlayerFrame)
 	elseif (unit == "pet") and E.private.unitframe.disabledBlizzardFrames.player then

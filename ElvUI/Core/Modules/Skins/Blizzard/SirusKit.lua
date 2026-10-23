@@ -451,7 +451,9 @@ local function Socket_OnClick(self)
 
 	if self.gemLink then
 		if self.canRemove then
-			SendServerMessage("ACMSG_REMOVE_SOCKET_FROM_ITEM", -1, self.inventorySlot, self.index)
+			SocketInventoryItem(self.inventorySlot)
+			C_ItemSocketInfo.RemoveGem(self.index)
+			CloseSocketInfo()
 		end
 	elseif self.isEmpty then
 		SocketInventoryItem(self.inventorySlot)

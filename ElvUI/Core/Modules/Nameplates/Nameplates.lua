@@ -1374,7 +1374,7 @@ function NP:UNIT_COMBO_POINTS(_, unit)
 	end
 end
 
-for _, powerEvent in pairs({"UNIT_HEALTH", "UNIT_MANA", "UNIT_ENERGY", "UNIT_FOCUS", "UNIT_RAGE", "UNIT_RUNIC_POWER", "UNIT_DISPLAYPOWER"}) do
+for _, powerEvent in pairs({"UNIT_HEALTH", "UNIT_POWER", "UNIT_DISPLAYPOWER"}) do
 	NP[powerEvent] = function(_, _, unit)
 		if unit ~= "player" then return end
 

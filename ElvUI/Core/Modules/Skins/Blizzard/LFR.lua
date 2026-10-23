@@ -6,20 +6,20 @@ local _G = _G
 S:AddCallback("Skin_LFR", function()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.lfr then return end
 
+	S:HandlePortraitFrame(RaidParentFrame)
+	S:HandleSirusTab(RaidParentFrameTab1)
+	S:HandleSirusTab(RaidParentFrameTab2, RaidParentFrameTab1)
+
 	LFRParentFrame:StripTextures()
-	LFRParentFrame:CreateBackdrop("Transparent")
-	LFRParentFrame.backdrop:Point("TOPLEFT", 11, -12)
-	LFRParentFrame.backdrop:Point("BOTTOMRIGHT", -3, 4)
 
-	local lfrShown
-	LFRParentFrame:HookScript("OnShow", function(self)
-		if lfrShown then return end
-		lfrShown = true
-		S:SetUIPanelWindowInfo(self, "width")
-		S:SetBackdropHitRect(self)
-	end)
-
-	S:HandleCloseButton((LFRParentFrame:GetChildren()), LFRParentFrame.backdrop)
+	for i = 1, 2 do
+		local tab = _G["LFRParentFrameSideTab"..i]
+		tab:GetRegions():SetAlpha(0)
+		tab:SetTemplate()
+		tab:StyleButton(nil, true)
+		tab:GetNormalTexture():SetInside()
+		tab:GetNormalTexture():SetTexCoords()
+	end
 
 	LFRQueueFrame:StripTextures()
 	LFRBrowseFrame:StripTextures()
@@ -35,9 +35,6 @@ S:AddCallback("Skin_LFR", function()
 	for i = 1, #buttons do
 		S:HandleButton(buttons[i], true)
 	end
-
-	S:HandleSirusTab(LFRParentFrameTab1)
-	S:HandleSirusTab(LFRParentFrameTab2, LFRParentFrameTab1)
 
 	S:HandleDropDownBox(LFRBrowseFrameRaidDropDown)
 	S:HandleSirusScrollBar(LFRQueueFrameSpecificListScrollFrameScrollBar)
@@ -73,16 +70,9 @@ S:AddCallback("Skin_LFR", function()
 	LFRQueueFrameNoLFRWhileLFD:Size(325, 271)
 	LFRQueueFrameNoLFRWhileLFD:Point("BOTTOMRIGHT", -11, 41)
 
-	LFRQueueFrameComment:Width(323)
-	LFRQueueFrameComment:Point("TOPLEFT", LFRQueueFrame, "BOTTOMLEFT", 20, 74)
-
-	LFRQueueFrameCommentTextButton:Size(323, 32)
-
 	LFRQueueFrameFindGroupButton:Point("BOTTOMLEFT", 19, 12)
 	LFRQueueFrameAcceptCommentButton:Point("BOTTOMRIGHT", -11, 12)
 	LFRBrowseFrameSendMessageButton:Point("BOTTOMLEFT", 19, 12)
 	LFRBrowseFrameInviteButton:Point("LEFT", LFRBrowseFrameSendMessageButton, "RIGHT", 4, 0)
 	LFRBrowseFrameRefreshButton:Point("LEFT", LFRBrowseFrameInviteButton, "RIGHT", 4, 0)
-
-	LFRParentFrameTab1:Point("BOTTOMLEFT", 11, -26)
 end)

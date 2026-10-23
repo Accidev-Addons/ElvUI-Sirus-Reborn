@@ -83,6 +83,9 @@ S:AddCallback("Skin_WorldStateScore", function()
 	WorldStateScoreFrameDamageDone:StyleButton()
 	WorldStateScoreFrameHealingDone:StyleButton()
 	WorldStateScoreFrameHonorGained:StyleButton()
+	WorldStateScoreFrameMatchmakingRating:StyleButton()
+	WorldStateScoreFrameBgRating:StyleButton()
+	WorldStateScoreFrameRatingChange:StyleButton()
 	WorldStateScoreFrameName:StyleButton()
 	WorldStateScoreFrameTeam:StyleButton()
 
@@ -110,11 +113,8 @@ S:AddCallback("Skin_WorldStateScore", function()
 	WorldStateScoreScrollFrameScrollBar:SetPoint("TOPLEFT", WorldStateScoreScrollFrame, "TOPRIGHT", 8, 0)
 	WorldStateScoreScrollFrameScrollBar:SetPoint("BOTTOMLEFT", WorldStateScoreScrollFrame, "BOTTOMRIGHT", 8, -9)
 
-	for i = 1, 5 do
-		local column = _G["WorldStateScoreColumn"..i]
-		if column then
-			column:StyleButton()
-		end
+	for i = 1, MAX_NUM_STAT_COLUMNS do
+		_G["WorldStateScoreColumn"..i]:StyleButton()
 	end
 
 	local myName = format("> %s <", E.myname)

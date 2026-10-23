@@ -201,7 +201,8 @@ do
 		DEATHKNIGHT = {250, 251, 252},
 		DRUID = {102, 103, 104, 105},
 		HUNTER = {253, 254, 255},
-		SHAMAN = {262, 263, 264}
+		SHAMAN = {262, 263, 264},
+		MONK = {268, 270, 269}
 	}
 
 	local function GetSpecialization(isInspect, isPet, specGroup)
@@ -267,8 +268,9 @@ do
 	end
 
 	local function GetSpecializationRole(unit)
-		if (not unit or unit == 'player') and C_Talent then
-			local role = IsSpecInfoReady() and C_Talent.GetCurrentSpecRole() or 'DAMAGER'
+		if not unit or unit == 'player' then
+			local index = _G.GetSpecialization()
+			local role = index and _G.GetSpecializationRole(index)
 			if role == 'TANK' or role == 'HEALER' or role == 'DAMAGER' then
 				return role
 			end
@@ -325,7 +327,10 @@ do
 		[264] = {SHAMAN_SPEC_RESTORATION_TITLE, [[Interface\Icons\spell_nature_healingwavegreater]], 'SHAMAN', 'HEALER'},
 		[265] = {WARLOCK_AFFLICTION_TITLE, [[Interface\Icons\spell_shadow_deathcoil]], 'WARLOCK'},
 		[266] = {WARLOCK_DEMONOLOGY_TITLE, [[Interface\Icons\spell_shadow_metamorphosis]], 'WARLOCK'},
-		[267] = {WARLOCK_DESTRUCTION_TITLE, [[Interface\Icons\spell_shadow_rainoffire]], 'WARLOCK'}
+		[267] = {WARLOCK_DESTRUCTION_TITLE, [[Interface\Icons\spell_shadow_rainoffire]], 'WARLOCK'},
+		[268] = {select(2, _G.GetSpecializationInfoByID(268)), [[Interface\Icons\spell_monk_brewmaster_spec]], 'MONK', 'TANK'},
+		[269] = {select(2, _G.GetSpecializationInfoByID(269)), [[Interface\Icons\spell_monk_windwalker_spec]], 'MONK'},
+		[270] = {select(2, _G.GetSpecializationInfoByID(270)), [[Interface\Icons\spell_monk_mistweaver_spec]], 'MONK', 'HEALER'}
 	}
 
 	local function GetSpecializationInfoByID(id)

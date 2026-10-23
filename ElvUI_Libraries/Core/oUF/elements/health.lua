@@ -27,7 +27,6 @@ The following options are listed by priority. The first check that returns true 
 
 .colorDisconnected - Use `self.colors.disconnected` to color the bar if the unit is offline (boolean)
 .colorTapping      - Use `self.colors.tapping` to color the bar if the unit isn't tapped by the player (boolean)
-.colorHappiness    - Use `self.colors.happiness` to color the bar if the unit is pet based on pet happiness (boolean)
 .colorThreat       - Use `self.colors.threat[threat]` to color the bar based on the unit's threat status. `threat` is
                      defined by the first return of [UnitThreatSituation](https://wow.gamepedia.com/API_UnitThreatSituation) (boolean)
 .colorClass        - Use `self.colors.class[class]` to color the bar based on unit class. `class` is defined by the
@@ -89,7 +88,6 @@ local unitSelectionType = Private.unitSelectionType
 
 local gsub, unpack = gsub, unpack
 
-local GetPetHappiness = GetPetHappiness
 local UnitClass = UnitClass
 local UnitHealth = UnitHealth
 local UnitHealthMax = UnitHealthMax
@@ -109,8 +107,6 @@ local function UpdateColor(self, event, unit)
 		t = self.colors.disconnected
 	elseif(element.colorTapping and not UnitPlayerControlled(unit) and (UnitIsTapped(unit) and not UnitIsTappedByPlayer(unit) and not UnitIsTappedByAllThreatList(unit))) then
 		t = self.colors.tapped
-	elseif(element.colorHappiness and UnitIsUnit(unit, 'pet') and GetPetHappiness()) then
-		t = self.colors.happiness[GetPetHappiness()]
 	elseif(element.colorThreat and not UnitPlayerControlled(unit) and UnitThreatSituation('player', unit)) then
 		t =  self.colors.threat[UnitThreatSituation('player', unit)]
 	elseif(element.colorClass and UnitIsPlayer(unit)) or
@@ -236,23 +232,6 @@ local function SetColorDisconnected(element, state)
 	end
 end
 
---[[ Health:SetColorHappiness(state)
-Used to toggle coloring by the unit's happiness.
-
-* self  - the Health element
-* state - the desired state (boolean)
---]]
-local function SetColorHappiness(element, state)
-	if(element.colorHappiness ~= state) then
-		element.colorHappiness = state
-		if(element.colorHappiness) then
-			element.__owner:RegisterEvent('UNIT_HAPPINESS', ColorPath)
-		else
-			element.__owner:UnregisterEvent('UNIT_HAPPINESS', ColorPath)
-		end
-	end
-end
-
 --[[ Health:SetColorTapping(state)
 Used to toggle coloring if the unit isn't tapped by the player.
 
@@ -333,17 +312,12 @@ local function Enable(self, unit)
 		element.__owner = self
 		element.ForceUpdate = ForceUpdate
 		element.SetColorDisconnected = SetColorDisconnected
-		element.SetColorHappiness = SetColorHappiness
 		element.SetColorTapping = SetColorTapping
 		element.SetColorThreat = SetColorThreat
 		element.SetFrequentUpdates = SetFrequentUpdates
 
 		if(element.colorDisconnected) then
 			self:RegisterEvent('UNIT_CONNECTION', ColorPath)
-		end
-
-		if(element.colorHappiness) then
-			self:RegisterEvent('UNIT_HAPPINESS', ColorPath)
 		end
 
 		if(element.colorTapping) then
@@ -390,7 +364,6 @@ local function Disable(self)
 		self:UnregisterEvent('UNIT_MAXHEALTH', Path)
 		self:UnregisterEvent('UNIT_CONNECTION', ColorPath)
 		self:UnregisterEvent('UNIT_FACTION', ColorPath)
-		self:UnregisterEvent('UNIT_HAPPINESS', ColorPath)
 		self:UnregisterEvent('UNIT_THREAT_LIST_UPDATE', ColorPath)
 	end
 end

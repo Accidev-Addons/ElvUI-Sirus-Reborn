@@ -9,7 +9,7 @@ local CreateFrame = CreateFrame
 local CastingBarFrame_OnLoad = CastingBarFrame_OnLoad
 local CastingBarFrame_SetUnit = CastingBarFrame_SetUnit
 
-local CAN_HAVE_CLASSBAR = (E.myclass == "DRUID" or E.myclass == "DEATHKNIGHT")
+local CAN_HAVE_CLASSBAR = (E.myclass == "DRUID" or E.myclass == "DEATHKNIGHT" or E.myclass == "MONK")
 
 function UF:Construct_PlayerFrame(frame)
 	frame.ThreatIndicator = self:Construct_Threat(frame)
@@ -35,6 +35,9 @@ function UF:Construct_PlayerFrame(frame)
 		elseif E.myclass == "DRUID" then
 			frame.AdditionalPower = self:Construct_AdditionalPowerBar(frame)
 			frame.ClassBar = "AdditionalPower"
+		elseif E.myclass == "MONK" then
+			frame.ClassPower = self:Construct_ClassPowerBar(frame)
+			frame.ClassBar = "ClassPower"
 		end
 	end
 

@@ -1019,11 +1019,10 @@ function S:HandleControlFrame(frame)
 
 	local name = frame:GetName()
 	frame:StripTextures()
-	frame:Width(58)
 
-	S:HandleControlButton(_G[name..'RotateLeftButton'])
-	S:HandleControlButton(_G[name..'RotateRightButton'])
-	S:HandleControlButton(_G[name..'RotateResetButton'])
+	for _, button in next, { 'ZoomInButton', 'ZoomOutButton', 'PanButton', 'RotateLeftButton', 'RotateRightButton', 'RotateResetButton' } do
+		S:HandleControlButton(_G[name..button])
+	end
 end
 
 do
@@ -1626,33 +1625,42 @@ function S:HandleSliderFrame(frame, template, frameLevel)
 	end
 end
 
-function S:HandleIconSelectionFrame(frame, numIcons, buttonNameTemplate, frameNameOverride)
-	local frameName = frameNameOverride or frame:GetName() --We need override in case Blizzard fucks up the naming (guild bank)
-	local scrollFrame = _G[frameName..'ScrollFrame']
-	local editBox = _G[frameName..'EditBox']
-	local okayButton = _G[frameName..'OkayButton'] or _G[frameName..'Okay']
-	local cancelButton = _G[frameName..'CancelButton'] or _G[frameName..'Cancel']
+do
+	local function SkinIconButtons(frame)
+		for _, button in next, { frame.IconSelector.ScrollBox.ScrollTarget:GetChildren() } do
+			if not button.isSkinned then
+				local texture = button.Icon:GetTexture()
+				button:StripTextures()
+				button:StyleButton(nil, true)
+				button:SetTemplate('Default', true)
+				button.Icon:SetTexture(texture)
+				button.Icon:SetTexCoords()
+				button.Icon:SetInside()
+				button.isSkinned = true
+			end
+		end
+	end
 
-	frame:StripTextures()
-	scrollFrame:StripTextures()
-	editBox:DisableDrawLayer('BACKGROUND') --Removes textures around it
+	function S:HandleIconSelectionFrame(frame)
+		local borderBox = frame.BorderBox
+		frame:StripTextures()
+		frame:SetTemplate('Transparent')
+		borderBox:StripTextures()
 
-	frame:CreateBackdrop('Transparent')
-	frame.backdrop:Point('TOPLEFT', frame, 'TOPLEFT', 10, -12)
-	frame.backdrop:Point('BOTTOMRIGHT', cancelButton, 'BOTTOMRIGHT', 8, -8)
+		S:HandleButton(borderBox.OkayButton)
+		S:HandleButton(borderBox.CancelButton)
+		borderBox.IconSelectorEditBox:DisableDrawLayer('BACKGROUND')
+		S:HandleEditBox(borderBox.IconSelectorEditBox)
+		S:HandleEditBox(borderBox.IconSearchBox)
+		S:HandleSirusScrollBar(frame.IconSelector.ScrollBar)
 
-	S:HandleButton(okayButton)
-	S:HandleButton(cancelButton)
-	S:HandleEditBox(editBox)
+		local selectedIcon = borderBox.SelectedIconArea.SelectedIconButton
+		selectedIcon:DisableDrawLayer('BACKGROUND')
+		selectedIcon:SetTemplate()
+		selectedIcon.Icon:SetInside()
+		selectedIcon.Icon:SetTexCoords()
 
-	for i = 1, numIcons do
-		local button = _G[buttonNameTemplate..i]
-		local icon = _G[button:GetName()..'Icon']
-		button:StripTextures()
-		button:SetTemplate('Default')
-		button:StyleButton(nil, true)
-		icon:SetInside()
-		icon:SetTexCoords()
+		frame:HookScript('OnShow', SkinIconButtons)
 	end
 end
 
@@ -1759,24 +1767,17 @@ function S:HandleCollapseExpandButton(button, defaultState, useFontString, xOffs
 		text:Point('LEFT', xOffset or 5, yOffset or 0)
 		collapseTexts[button] = text
 	else
-		local normalTexture = button:GetNormalTexture()
-		normalTexture:Size(16)
-		normalTexture:ClearAllPoints()
-		normalTexture:Point('LEFT', xOffset or 3, yOffset or 0)
-		E:LockPoints(normalTexture)
-
-		local pushedTexture = button:GetPushedTexture()
-		pushedTexture:Size(16)
-		pushedTexture:ClearAllPoints()
-		pushedTexture:Point('LEFT', xOffset or 3, yOffset or 0)
-		E:LockPoints(pushedTexture)
+		for _, texture in next, { button:GetNormalTexture(), button:GetPushedTexture(), button:GetDisabledTexture() } do
+			texture:Size(16)
+			texture:ClearAllPoints()
+			texture:Point('LEFT', xOffset or 3, yOffset or 0)
+			E:LockPoints(texture)
+		end
 
 		local disabledTexture = button:GetDisabledTexture()
-		disabledTexture:Size(16)
-		disabledTexture:ClearAllPoints()
-		disabledTexture:Point('LEFT', xOffset or 3, yOffset or 0)
-		E:LockPoints(disabledTexture)
-		disabledTexture:SetVertexColor(0.6, 0.6, 0.6)
+		if disabledTexture then
+			disabledTexture:SetVertexColor(0.6, 0.6, 0.6)
+		end
 	end
 
 	collapseStates[button] = (defaultState == '+' or defaultState == '-') and defaultState or nil

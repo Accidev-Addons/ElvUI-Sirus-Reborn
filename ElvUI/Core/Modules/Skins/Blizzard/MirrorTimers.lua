@@ -25,7 +25,7 @@ S:AddCallback("Skin_MirrorTimers", function()
 
 		hooksecurefunc(frame, "Setup", function(self, timer, value, maxvalue, paused, label)
 			self.__elvLabel = label
-			self.StatusBar.BarTexture:SetTexture(E.media.normTex)
+			self.StatusBar:SetStatusBarTexture(E.media.normTex)
 
 			local color = _G.MirrorTimerColors[timer]
 			if color then

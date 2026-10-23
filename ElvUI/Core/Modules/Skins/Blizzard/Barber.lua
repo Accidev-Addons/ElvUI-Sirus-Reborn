@@ -23,8 +23,7 @@ end
 local function LoadSkin()
 	if not E.private.skins.blizzard.enable or not E.private.skins.blizzard.barber then return end
 
-	local BarberFrame = _G.CustomBarberShopFrame
-	if not BarberFrame then return end
+	local BarberFrame = _G.BarberShopFrame
 
 	S:HandleButton(BarberFrame.AcceptButton, true, nil, nil, true, nil, nil, nil, true)
 	S:HandleButton(BarberFrame.CancelButton, true, nil, nil, true, nil, nil, nil, true)
@@ -32,23 +31,7 @@ local function LoadSkin()
 
 	local CharFrame = _G.CharCustomizeFrame
 	if CharFrame then
-		if CharFrame.RandomizeAppearanceButton then
-			S:HandleButton(CharFrame.RandomizeAppearanceButton, nil, nil, nil, true)
-		end
-
-		if CharFrame.SmallButtons then
-			for _, button in next, {
-				CharFrame.SmallButtons.ResetCameraButton,
-				CharFrame.SmallButtons.ZoomOutButton,
-				CharFrame.SmallButtons.ZoomInButton,
-				CharFrame.SmallButtons.RotateLeftButton,
-				CharFrame.SmallButtons.RotateRightButton,
-			} do
-				if button then
-					S:HandleButton(button, nil, nil, nil, true)
-				end
-			end
-		end
+		S:HandleButton(CharFrame.RandomizeAppearanceButton, nil, nil, nil, true)
 
 		hooksecurefunc(CharCustomizeOptionSelectionFrameMixin, "SetupOption", SkinOption)
 	end

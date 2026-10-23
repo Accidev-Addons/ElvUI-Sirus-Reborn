@@ -4,10 +4,9 @@ local M = E:GetModule("Misc")
 local sin, cos, rad = math.sin, math.cos, rad
 
 local CreateFrame = CreateFrame
-local GetNumPartyMembers = GetNumPartyMembers
-local UnitInRaid = UnitInRaid
-local UnitIsPartyLeader = UnitIsPartyLeader
-local UnitIsRaidOfficer = UnitIsRaidOfficer
+local IsInGroup, IsInRaid = IsInGroup, IsInRaid
+local UnitIsGroupLeader = UnitIsGroupLeader
+local UnitIsGroupAssistant = UnitIsGroupAssistant
 local UnitExists, UnitIsDead = UnitExists, UnitIsDead
 local GetCursorPosition = GetCursorPosition
 local PlaySound = PlaySound
@@ -21,8 +20,8 @@ local ButtonIsDown
 function M:RaidMarkCanMark()
 	if not self.RaidMarkFrame then return false end
 
-	if GetNumPartyMembers() > 0 then
-		if UnitIsPartyLeader("player") or (UnitInRaid("player") and UnitIsRaidOfficer("player") and not UnitIsPartyLeader("player")) then
+	if IsInGroup() then
+		if UnitIsGroupLeader("player") or (IsInRaid() and UnitIsGroupAssistant("player")) then
 			return true
 		else
 			UIErrorsFrame:AddMessage(L["You don't have permission to mark targets."], 1.0, 0.1, 0.1, 1.0)

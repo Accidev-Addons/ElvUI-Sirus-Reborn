@@ -2,7 +2,6 @@ local E, L, V, P, G = unpack(ElvUI)
 local S = E:GetModule("Skins")
 
 local _G = _G
-local select = select
 
 local CreateFrame = CreateFrame
 local hooksecurefunc = hooksecurefunc
@@ -32,7 +31,7 @@ S:AddCallbackForAddon("Blizzard_GuildBankUI", "Skin_Blizzard_GuildBankUI", funct
 
 	GuildBankEmblemFrame:StripTextures(true)
 
-	S:HandleCloseButton((select(13, GuildBankFrame:GetChildren())), GuildBankFrame.backdrop)
+	S:HandleCloseButton(GuildBankFrame.CloseButton, GuildBankFrame.backdrop)
 
 	S:HandleButton(GuildBankFrameDepositButton)
 	S:HandleButton(GuildBankFrameWithdrawButton)
@@ -107,12 +106,7 @@ S:AddCallbackForAddon("Blizzard_GuildBankUI", "Skin_Blizzard_GuildBankUI", funct
 	AnchorTotalMoney()
 
 	hooksecurefunc("GuildBankFrame_Update", AnchorTotalMoney)
-	if _G.GuildBankFrame_UpdateMoney then
-		hooksecurefunc("GuildBankFrame_UpdateMoney", AnchorTotalMoney)
-	end
-	if _G.GuildBankFrame_UpdateWithdrawMoney then
-		hooksecurefunc("GuildBankFrame_UpdateWithdrawMoney", AnchorTotalMoney)
-	end
+	hooksecurefunc("GuildBankFrame_UpdateWithdrawMoney", AnchorTotalMoney)
 
 	if GuildBankMoneyFrame then
 		local relocating = false
@@ -147,39 +141,15 @@ S:AddCallbackForAddon("Blizzard_GuildBankUI", "Skin_Blizzard_GuildBankUI", funct
 	GuildBankInfoSaveButton:Point("BOTTOMLEFT", GuildBankFrame, "BOTTOMLEFT", 19, 35)
 
 	-- Popup
-	S:HandleIconSelectionFrame(GuildBankPopupFrame, NUM_GUILDBANK_ICONS_SHOWN, "GuildBankPopupButton", "GuildBankPopup")
-	S:SetBackdropHitRect(GuildBankPopupFrame)
-
-	S:HandleSirusScrollBar(GuildBankPopupScrollFrameScrollBar)
+	S:HandleIconSelectionFrame(GuildBankPopupFrame)
 
 	GuildBankPopupFrame:Point("TOPLEFT", GuildBankFrame, "TOPRIGHT", 24, 0)
 
-	local nameLable, iconLable = select(5, GuildBankPopupFrame:GetRegions())
-	nameLable:Point("TOPLEFT", 24, -18)
-	iconLable:Point("TOPLEFT", 24, -60)
-
-	GuildBankPopupEditBox:Point("TOPLEFT", 32, -35)
-
-	GuildBankPopupScrollFrame:CreateBackdrop("Transparent")
-	GuildBankPopupScrollFrame.backdrop:Point("TOPLEFT", 91, -10)
-	GuildBankPopupScrollFrame.backdrop:Point("BOTTOMRIGHT", -19, 5)
-	GuildBankPopupScrollFrame:Point("TOPRIGHT", -30, -66)
-
-	GuildBankPopupScrollFrameScrollBar:Point("TOPLEFT", GuildBankPopupScrollFrame, "TOPRIGHT", -16, -29)
-	GuildBankPopupScrollFrameScrollBar:Point("BOTTOMLEFT", GuildBankPopupScrollFrame, "BOTTOMRIGHT", -16, 24)
-
-	GuildBankPopupButton1:Point("TOPLEFT", 24, -82)
-
-	GuildBankPopupCancelButton:Point("BOTTOMRIGHT", -28, 35)
-	GuildBankPopupOkayButton:Point("RIGHT", GuildBankPopupCancelButton, "LEFT", -3, 0)
-
 	-- Reposition
 	GuildBankTab1:Point("TOPLEFT", GuildBankFrame, "TOPRIGHT", E.PixelMode and -3 or -1, -36)
-	GuildBankTab2:Point("TOPLEFT", GuildBankTab1, "BOTTOMLEFT", 0, 7)
-	GuildBankTab3:Point("TOPLEFT", GuildBankTab2, "BOTTOMLEFT", 0, 7)
-	GuildBankTab4:Point("TOPLEFT", GuildBankTab3, "BOTTOMLEFT", 0, 7)
-	GuildBankTab5:Point("TOPLEFT", GuildBankTab4, "BOTTOMLEFT", 0, 7)
-	GuildBankTab6:Point("TOPLEFT", GuildBankTab5, "BOTTOMLEFT", 0, 7)
+	for i = 2, MAX_GUILDBANK_TABS do
+		_G["GuildBankTab"..i]:Point("TOPLEFT", _G["GuildBankTab"..(i - 1)], "BOTTOMLEFT", 0, 7)
+	end
 
 	GuildBankColumn1:Point("TOPLEFT", 25, -70)
 	GuildBankColumn2:Point("TOPLEFT", GuildBankColumn1, "TOPRIGHT", -14, 0)
@@ -198,10 +168,8 @@ S:AddCallbackForAddon("Blizzard_GuildBankUI", "Skin_Blizzard_GuildBankUI", funct
 	GuildBankColumn7Button8:Point("TOPLEFT", GuildBankColumn7Button1, "TOPRIGHT", 6, 0)
 
 	local GuildItemSearchBox = _G.GuildItemSearchBox
-	if GuildItemSearchBox then
-		S:HandleEditBox(GuildItemSearchBox)
-		GuildItemSearchBox:ClearAllPoints()
-		GuildItemSearchBox:Point("TOPLEFT", GuildBankFrame, "TOPLEFT", 450, -34)
-		GuildItemSearchBox:Size(150, 20)
-	end
+	S:HandleEditBox(GuildItemSearchBox)
+	GuildItemSearchBox:ClearAllPoints()
+	GuildItemSearchBox:Point("TOPLEFT", GuildBankFrame, "TOPLEFT", 450, -34)
+	GuildItemSearchBox:Size(150, 20)
 end)

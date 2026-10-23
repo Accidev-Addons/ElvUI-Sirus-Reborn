@@ -113,8 +113,7 @@ if (not frame) then
 	lib.frame = frame
 end
 frame:UnregisterAllEvents()
-frame:RegisterEvent("RAID_ROSTER_UPDATE")
-frame:RegisterEvent("PARTY_MEMBERS_CHANGED")
+frame:RegisterEvent("GROUP_ROSTER_UPDATE")
 frame:RegisterEvent("UNIT_NAME_UPDATE")
 frame:RegisterEvent("PLAYER_TALENT_UPDATE")
 frame:RegisterEvent("UNIT_LEVEL")
@@ -246,7 +245,7 @@ function lib:RAID_ROSTER_UPDATE()
 	self.raidRosterUpdate = true
 	frame:Show()
 end
-lib.PARTY_MEMBERS_CHANGED = lib.RAID_ROSTER_UPDATE
+lib.GROUP_ROSTER_UPDATE = lib.RAID_ROSTER_UPDATE
 
 -- UNIT_NAME_UPDATE
 function lib:UNIT_NAME_UPDATE(unit)
@@ -339,9 +338,9 @@ function lib:OnRaidRosterUpdate()
 	if (instanceType == "pvp" or instanceType == "arena") then
 		self.distribution = "BATTLEGROUND"
 	else
-		if (GetNumRaidMembers() > 0) then
+		if (IsInRaid()) then
 			self.distribution = "RAID"
-		elseif (GetNumPartyMembers() > 0) then
+		elseif (IsInGroup()) then
 			self.distribution = "PARTY"
 		else
 			self.distribution = nil
@@ -1732,14 +1731,14 @@ do
 	-- IterateRoster
 	function lib:IterateRoster()
 		local t = new()
-		if (GetNumRaidMembers() > 0) then
+		if (IsInRaid()) then
 			t.mode = "raid"
 			t.id = 1
-			t.r = GetNumRaidMembers()
+			t.r = GetNumGroupMembers()
 		else
 			t.mode = "party"
 			t.id = 0
-			t.p = GetNumPartyMembers()
+			t.p = GetNumSubgroupMembers()
 		end
 		return iter, t
 	end

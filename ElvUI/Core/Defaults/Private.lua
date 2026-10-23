@@ -75,8 +75,6 @@ V.skins = {
 		enable = true,
 		achievement = true,
 		alertframes = true,
-		arena = true,
-		arenaregistrar = true,
 		auctionhouse = true,
 		bags = true,
 		barber = true,
@@ -170,34 +168,4 @@ V.actionbar = {
 
 V.worldmap = {
 	enable = true
-}
-
-V.character = {
-	character = {
-		enable = true,
-		player = {
-			orderName = "",
-			collapsedName = {
-				STRENGTHEN = false,
-				BASE_STATS = false,
-				MELEE_COMBAT = false,
-				RANGED_COMBAT = false,
-				SPELL_COMBAT = false,
-				DEFENSES = false,
-				RESISTANCE = false
-			}
-		},
-		pet = {
-			orderName = "",
-			collapsedName = {
-				STRENGTHEN = false,
-				BASE_STATS = false,
-				MELEE_COMBAT = false,
-				RANGED_COMBAT = false,
-				SPELL_COMBAT = false,
-				DEFENSES = false,
-				RESISTANCE = false
-			}
-		}
-	}
 }

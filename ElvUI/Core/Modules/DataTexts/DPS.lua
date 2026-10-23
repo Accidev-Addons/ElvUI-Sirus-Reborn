@@ -41,14 +41,14 @@ local function OnEvent(self, event, ...)
 		end
 		lastSegment = now
 	elseif event == 'COMBAT_LOG_EVENT_UNFILTERED' then
-		local timestamp, Event, sourceGUID, _, _, _, _, _, arg9, _, _, arg12 = ...
+		local timestamp, Event, _, sourceGUID, _, _, _, _, _, _, _, arg12, _, _, arg15 = ...
 		if not events[Event] then return end
 		if sourceGUID ~= E.myguid and sourceGUID ~= petGUID then return end
 
 		if timeStamp == 0 then timeStamp = timestamp end
 		lastSegment = timeStamp
 		combatTime = timestamp - timeStamp
-		lastDMGAmount = (Event == 'SWING_DAMAGE' and arg9) or arg12
+		lastDMGAmount = (Event == 'SWING_DAMAGE' and arg12) or arg15
 		DMGTotal = DMGTotal + lastDMGAmount
 	end
 

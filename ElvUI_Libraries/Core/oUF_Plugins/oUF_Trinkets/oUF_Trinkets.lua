@@ -39,7 +39,7 @@ local function Update(self, event, ...)
 	end
 
 	if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-		local _, eventType, sourceGUID, _, _, _, _, _, spellID = ...
+		local _, eventType, _, sourceGUID, _, _, _, _, _, _, _, spellID = ...
 
 		if eventType == "SPELL_CAST_SUCCESS" and trinketSpells[spellID] and sourceGUID == UnitGUID(self.unit) then
 			CooldownFrame_SetTimer(element.cooldownFrame, GetTime(), trinketSpells[spellID], 1)

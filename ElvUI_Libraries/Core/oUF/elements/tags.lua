@@ -215,7 +215,7 @@ tagFunctions.group = function(unit)
 		name = format('%s-%s', name, server)
 	end
 
-	for i=1, GetNumRaidMembers() do
+	for i=1, (IsInRaid() and GetNumGroupMembers() or 0) do
 		local raidName, _, group = GetRaidRosterInfo(i)
 		if(raidName == name) then
 			return group
@@ -223,27 +223,14 @@ tagFunctions.group = function(unit)
 	end
 end
 
-tagFunctions.happiness = function(u)
-	if(UnitIsUnit(u, 'pet')) then
-		local happiness = GetPetHappiness()
-		if(happiness == 1) then
-			return ':<'
-		elseif(happiness == 2) then
-			return ':|'
-		elseif(happiness == 3) then
-			return ':D'
-		end
-	end
-end
-
 tagFunctions.leader = function(u)
-	if(UnitIsPartyLeader(u)) then
+	if(UnitIsGroupLeader(u)) then
 		return 'L'
 	end
 end
 
 tagFunctions.leaderlong = function(u)
-	if(UnitIsPartyLeader(u)) then
+	if(UnitIsGroupLeader(u)) then
 		return 'Leader'
 	end
 end
@@ -464,26 +451,25 @@ local tagEvents = {
 	['classification']		= 'UNIT_CLASSIFICATION_CHANGED',
 	['cpoints']				= 'UNIT_COMBO_POINTS PLAYER_TARGET_CHANGED',
 	['curhp']				= 'UNIT_HEALTH',
-	['curmana']				= 'UNIT_MANA UNIT_MAXMANA',
-	['curpp']				= 'UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_RUNIC_POWER',
+	['curmana']				= 'UNIT_POWER UNIT_MAXPOWER',
+	['curpp']				= 'UNIT_POWER',
 	['dead']				= 'UNIT_HEALTH',
 	['deficit:name']        = 'UNIT_HEALTH UNIT_MAXHEALTH UNIT_NAME_UPDATE',
 	['difficulty']          = 'UNIT_FACTION',
 	['faction']             = 'PLAYER_FLAGS_CHANGED',
-	['group']				= 'PARTY_MEMBERS_CHANGED RAID_ROSTER_UPDATE',
-	['happiness']			= 'UNIT_HAPPINESS',
+	['group']				= 'GROUP_ROSTER_UPDATE',
 	['leader']				= 'PARTY_LEADER_CHANGED',
 	['leaderlong']			= 'PARTY_LEADER_CHANGED',
 	['level']				= 'UNIT_LEVEL PLAYER_LEVEL_UP',
 	['maxhp']				= 'UNIT_MAXHEALTH',
-	['maxmana']				= 'UNIT_MANA UNIT_MAXMANA',
-	['maxpp']				= 'UNIT_MAXENERGY UNIT_MAXFOCUS UNIT_MAXMANA UNIT_MAXRAGE UNIT_MAXRUNIC_POWER',
+	['maxmana']				= 'UNIT_POWER UNIT_MAXPOWER',
+	['maxpp']				= 'UNIT_MAXPOWER',
 	['missinghp']			= 'UNIT_HEALTH UNIT_MAXHEALTH',
-	['missingpp']			= 'UNIT_MAXENERGY UNIT_MAXFOCUS UNIT_MAXMANA UNIT_MAXRAGE UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_MAXRUNIC_POWER UNIT_RUNIC_POWER',
+	['missingpp']			= 'UNIT_MAXPOWER UNIT_POWER',
 	['name']				= 'UNIT_NAME_UPDATE',
 	['offline']				= 'UNIT_HEALTH',
 	['perhp']				= 'UNIT_HEALTH UNIT_MAXHEALTH',
-	['perpp']				= 'UNIT_MAXENERGY UNIT_MAXFOCUS UNIT_MAXMANA UNIT_MAXRAGE UNIT_ENERGY UNIT_FOCUS UNIT_MANA UNIT_RAGE UNIT_MAXRUNIC_POWER UNIT_RUNIC_POWER',
+	['perpp']				= 'UNIT_MAXPOWER UNIT_POWER',
 	['plus']				= 'UNIT_CLASSIFICATION_CHANGED',
 	['powercolor']			= 'UNIT_DISPLAYPOWER',
 	['pvp']					= 'UNIT_FACTION',
@@ -503,8 +489,7 @@ local unitlessEvents = {
 	PLAYER_UPDATE_RESTING = true,
 	PLAYER_TARGET_CHANGED = true,
 	PLAYER_TALENT_UPDATE = true,
-	RAID_ROSTER_UPDATE = true,
-	PARTY_MEMBERS_CHANGED = true,
+	GROUP_ROSTER_UPDATE = true,
 	PARTY_LEADER_CHANGED = true,
 	UNIT_COMBO_POINTS = true,
 	RUNE_POWER_UPDATE = true,
