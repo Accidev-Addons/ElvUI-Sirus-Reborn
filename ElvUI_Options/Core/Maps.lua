@@ -5,7 +5,6 @@ local MM = E:GetModule('Minimap')
 local MBG = E:GetModule('MinimapButtonGrabber')
 local ACH = E.Libs.ACH
 
-local _G = _G
 local pairs = pairs
 local GetSpellInfo = GetSpellInfo
 
@@ -39,12 +38,9 @@ Maps.args.worldMap.args.enable = ACH:Toggle(L["Enable"], L["Enable/Disable the W
 
 Maps.args.worldMap.args.generalGroup = ACH:Group(L["General"], nil, 1, nil, function(info) return E.global.general[info[#info]] end, function(info, value) E.global.general[info[#info]] = value end, function() return not E.private.worldmap.enable end)
 Maps.args.worldMap.args.generalGroup.inline = true
-Maps.args.worldMap.args.generalGroup.args.smallerWorldMap = ACH:Toggle(L["Smaller World Map"], L["Make the world map smaller."], 1, nil, nil, nil, nil, function(_, value) E.global.general.smallerWorldMap = value; E.ShowPopup = true end)
 
-Maps.args.worldMap.args.generalGroup.args.spacer1 = ACH:Spacer(3)
-Maps.args.worldMap.args.generalGroup.args.fadeMapWhenMoving = ACH:Toggle(L["MAP_FADE_TEXT"], nil, 4, nil, nil, nil, nil, function(_, value) E.global.general.fadeMapWhenMoving = value; E.WorldMap.UpdateMapAlpha() end)
-Maps.args.worldMap.args.generalGroup.args.mapAlphaWhenMoving = ACH:Range(L["Map Opacity When Moving"], nil, 5, { min = 0, max = 1, step = .01, isPercent = true }, nil, nil, function(_, value) E.global.general.mapAlphaWhenMoving = value; E.WorldMap:UpdateMapFade(_G.WorldMapFrame, E.global.general.mapAlphaWhenMoving, 1.0, E.global.general.fadeMapDuration) end, function() return not E.global.general.fadeMapWhenMoving end)
-Maps.args.worldMap.args.generalGroup.args.fadeMapDuration = ACH:Range(L["Fade Duration"], nil, 6, { min = 0, max = 1, step = .01, isPercent = true }, nil, nil, function(_, value) E.global.general.fadeMapDuration = value; E.WorldMap:UpdateMapFade(_G.WorldMapFrame, E.global.general.mapAlphaWhenMoving, 1.0, E.global.general.fadeMapDuration) end, function() return not E.global.general.fadeMapWhenMoving end)
+Maps.args.worldMap.args.generalGroup.args.fadeMapWhenMoving = ACH:Toggle(L["MAP_FADE_TEXT"], nil, 4, nil, nil, nil, nil, function(_, value) E.global.general.fadeMapWhenMoving = value; WM:UpdateMapFade() end)
+Maps.args.worldMap.args.generalGroup.args.mapAlphaWhenMoving = ACH:Range(L["Map Opacity When Moving"], nil, 5, { min = 0, max = 1, step = .01, isPercent = true }, nil, nil, function(_, value) E.global.general.mapAlphaWhenMoving = value; WM:UpdateMapFade() end, function() return not E.global.general.fadeMapWhenMoving end)
 
 Maps.args.worldMap.args.coordinatesGroup = ACH:Group(L["World Map Coordinates"], nil, 3, nil, function(info) return E.global.general.WorldMapCoordinates[info[#info]] end, function(info, value) E.global.general.WorldMapCoordinates[info[#info]] = value; WM:PositionCoords() end, function() return not E.private.worldmap.enable end)
 Maps.args.worldMap.args.coordinatesGroup.inline = true

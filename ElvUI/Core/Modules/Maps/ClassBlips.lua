@@ -89,13 +89,6 @@ function CB.Initialize()
 		minimap:SetClassBlipTexture(texture)
 	end
 
-	SetupUnits('WorldMapParty', MAX_PARTY_MEMBERS, 24, texture)
-	SetupUnits('WorldMapRaid', MAX_RAID_MEMBERS, 24, texture, true)
-
-	if _G.WorldMapButton then
-		_G.WorldMapButton:HookScript('OnUpdate', CreateUpdater('WorldMapParty', 'WorldMapRaid'))
-	end
-
 	if _G.BattlefieldMinimap then
 		SetupUnits('BattlefieldMinimapParty', MAX_PARTY_MEMBERS, 16, texture)
 		SetupUnits('BattlefieldMinimapRaid', MAX_RAID_MEMBERS, 16, texture, true)

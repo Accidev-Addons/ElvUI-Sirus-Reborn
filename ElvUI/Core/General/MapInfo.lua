@@ -1,35 +1,36 @@
 local E, L, V, P, G = unpack(ElvUI)
 
-local select = select
+local C_Map = C_Map
 local IsFalling = IsFalling
 local CreateFrame = CreateFrame
 local GetUnitSpeed = GetUnitSpeed
 local GetRealZoneText = GetRealZoneText
 local GetMinimapZoneText = GetMinimapZoneText
-local GetCurrentMapAreaID = GetCurrentMapAreaID
-local GetCurrentMapContinent = GetCurrentMapContinent
-local GetMapContinents = GetMapContinents
-local GetMapInfoEx = GetMapInfoEx
-local GetMapInfo = GetMapInfo
 local GetZoneText = GetZoneText
 
 local MapInfo = {}
 E.MapInfo = MapInfo
 
-local function GetContinentName()
-	local index = GetCurrentMapContinent()
-	if not index or index < 1 then return end
+local function GetContinentName(info)
+	local name
 
-	return select(index, GetMapContinents())
+	info = info and C_Map.GetMapInfo(info.parentMapID)
+	while info and info.mapType > Enum.UIMapType.World do
+		name = info.name
+		info = C_Map.GetMapInfo(info.parentMapID)
+	end
+
+	return name
 end
 
 function E:MapInfo_Update()
-	local mapID = GetCurrentMapAreaID()
+	local mapID = C_Map.GetBestMapForUnit('player')
+	local info = mapID and C_Map.GetMapInfo(mapID)
 
-	MapInfo.name = (mapID and GetMapInfoEx(mapID)) or GetZoneText() or GetMapInfo() or nil
+	MapInfo.name = (info and info.name) or GetZoneText() or nil
 
 	MapInfo.mapID = mapID or nil
-	MapInfo.continentName = GetContinentName() or nil
+	MapInfo.continentName = GetContinentName(info) or nil
 	MapInfo.zoneText = (mapID and E:GetZoneText(mapID)) or nil
 	MapInfo.subZoneText = GetMinimapZoneText() or nil
 	MapInfo.realZoneText = GetRealZoneText() or nil
@@ -97,8 +98,11 @@ end
 
 local x, y = 0, 0
 function E:GetPlayerMapPos()
-	x, y = GetPlayerMapPosition('player')
-	if not x then return end
+	local mapID = C_Map.GetBestMapForUnit('player')
+	local position = mapID and C_Map.GetPlayerMapPosition(mapID, 'player')
+	if not position then return end
+
+	x, y = position:GetXY()
 
 	return x, y
 end
